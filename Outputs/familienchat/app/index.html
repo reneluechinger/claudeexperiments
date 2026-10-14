@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>Familienchat</title>
+  <meta name="theme-color" content="#0f766e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Familienchat">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+
+<!-- Ladeanzeige -->
+<section id="screen-loading" class="screen center">
+  <img src="icons/icon-192.png" alt="" class="logo">
+  <p class="muted">Wird geladen …</p>
+</section>
+
+<!-- config.js ist noch nicht ausgefüllt -->
+<section id="screen-config" class="screen center" hidden>
+  <div class="card">
+    <h1>Fast geschafft</h1>
+    <p>Trage in der Datei <code>config.js</code> die Adresse und den Schlüssel deines Supabase-Projekts ein. Die Anleitung erklärt jeden Schritt.</p>
+  </div>
+</section>
+
+<!-- iPhone: zuerst auf den Home-Bildschirm -->
+<section id="screen-ios" class="screen center" hidden>
+  <div class="card">
+    <img src="icons/icon-192.png" alt="" class="logo">
+    <h1>Zuerst auf den Home-Bildschirm</h1>
+    <p>Auf dem iPhone funktionieren Benachrichtigungen und der Schlüssel nur in der installierten App.</p>
+    <ol class="steps">
+      <li>Tippe unten auf das <b>Teilen-Symbol</b> <span class="icon-inline">⬆︎</span></li>
+      <li>Wähle <b>«Zum Home-Bildschirm»</b></li>
+      <li>Öffne die App über das neue Symbol auf dem Home-Bildschirm</li>
+    </ol>
+    <button class="link" id="ios-continue">Trotzdem im Browser weiter</button>
+  </div>
+</section>
+
+<!-- Anmelden / Registrieren -->
+<section id="screen-auth" class="screen center" hidden>
+  <div class="card">
+    <img src="icons/icon-192.png" alt="" class="logo">
+    <h1 class="app-name">Familienchat</h1>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="login" class="active">Anmelden</button>
+      <button role="tab" data-tab="register">Neu mit Einladung</button>
+    </div>
+
+    <form id="form-login" class="tab-panel" data-panel="login">
+      <label>E-Mail <input name="email" type="email" autocomplete="username" required></label>
+      <label>Passwort <input name="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary" type="submit">Anmelden</button>
+      <button class="link" type="button" id="btn-forgot">Passwort vergessen?</button>
+    </form>
+
+    <form id="form-register" class="tab-panel" data-panel="register" hidden>
+      <label>Einladungscode <input name="code" autocomplete="off" autocapitalize="characters" placeholder="ABCDE-12345" required></label>
+      <label>Dein Name im Chat <input name="name" maxlength="40" autocomplete="given-name" required></label>
+      <label>E-Mail <input name="email" type="email" autocomplete="username" required></label>
+      <label>Passwort <input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+      <button class="primary" type="submit">Konto erstellen</button>
+    </form>
+    <p class="error" data-error></p>
+    <p class="info" data-info></p>
+  </div>
+</section>
+
+<!-- Neues Passwort nach Link aus E-Mail -->
+<section id="screen-newpw" class="screen center" hidden>
+  <form class="card" id="form-newpw">
+    <h1>Neues Passwort</h1>
+    <label>Neues Passwort <input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+    <button class="primary" type="submit">Speichern</button>
+    <p class="error" data-error></p>
+  </form>
+</section>
+
+<!-- Angemeldet, aber noch kein Mitglied -->
+<section id="screen-join" class="screen center" hidden>
+  <form class="card" id="form-join">
+    <h1>Einladung einlösen</h1>
+    <p>Du bist angemeldet. Gib jetzt deinen Einladungscode ein.</p>
+    <label>Einladungscode <input name="code" autocomplete="off" autocapitalize="characters" placeholder="ABCDE-12345" required></label>
+    <label>Dein Name im Chat <input name="name" maxlength="40" required></label>
+    <button class="primary" type="submit">Beitreten</button>
+    <button class="link" type="button" data-logout>Abmelden</button>
+    <p class="error" data-error></p>
+  </form>
+</section>
+
+<!-- Mitglied, aber auf diesem Gerät fehlt der Schlüssel -->
+<section id="screen-key" class="screen center" hidden>
+  <div class="card">
+    <h1>Schlüssel fehlt</h1>
+    <p>Auf diesem Gerät ist dein persönlicher Schlüssel nicht gespeichert. Ohne ihn lassen sich die Nachrichten nicht lesen.</p>
+
+    <form id="form-restore" class="box">
+      <h2>Aus Sicherung wiederherstellen</h2>
+      <label>Schlüsseldatei <input name="file" type="file" accept=".json,application/json" required></label>
+      <label>Passwort der Sicherung <input name="password" type="password" required></label>
+      <button class="primary" type="submit">Wiederherstellen</button>
+    </form>
+
+    <div class="box">
+      <h2>Neuen Schlüssel erstellen</h2>
+      <p class="muted">Alte Nachrichten kannst du danach nicht mehr lesen. Neue Nachrichten funktionieren normal.</p>
+      <button id="btn-newkey">Neuen Schlüssel erstellen</button>
+    </div>
+    <button class="link" type="button" data-logout>Abmelden</button>
+    <p class="error" data-error></p>
+  </div>
+</section>
+
+<!-- Der Chat -->
+<section id="screen-chat" class="screen chat" hidden>
+  <header class="chat-header">
+    <img src="icons/icon-192.png" alt="" class="avatar">
+    <div class="chat-title">
+      <strong class="app-name">Familienchat</strong>
+      <span id="chat-sub" class="muted small"></span>
+    </div>
+    <button id="btn-menu" class="icon-btn" aria-label="Einstellungen">⋮</button>
+  </header>
+
+  <div id="push-banner" class="banner" hidden>
+    <span>🔔 Benachrichtigungen einschalten?</span>
+    <button id="btn-push-banner" class="small-btn">Einschalten</button>
+    <button id="btn-push-dismiss" class="icon-btn" aria-label="Ausblenden">✕</button>
+  </div>
+
+  <main id="messages" class="messages" aria-live="polite">
+    <button id="btn-older" class="older" hidden>Ältere Nachrichten laden</button>
+    <div id="msg-list"></div>
+  </main>
+
+  <div id="recorder" class="recorder" hidden>
+    <span class="rec-dot"></span>
+    <span id="rec-time">0:00</span>
+    <span class="muted small grow">Sprachnachricht wird aufgenommen</span>
+    <button id="btn-rec-cancel" class="small-btn ghost">Verwerfen</button>
+    <button id="btn-rec-send" class="small-btn">Senden</button>
+  </div>
+
+  <form id="composer" class="composer">
+    <label class="icon-btn attach" aria-label="Bild senden">
+      📎<input id="file-image" type="file" accept="image/*" hidden>
+    </label>
+    <textarea id="input-text" rows="1" placeholder="Nachricht" autocomplete="off"></textarea>
+    <button id="btn-mic" type="button" class="round-btn" aria-label="Sprachnachricht aufnehmen">🎤</button>
+    <button id="btn-send" type="submit" class="round-btn" aria-label="Senden" hidden>➤</button>
+  </form>
+</section>
+
+<!-- Einstellungen -->
+<dialog id="settings">
+  <div class="sheet">
+    <header class="sheet-head">
+      <h2>Einstellungen</h2>
+      <button class="icon-btn" data-close aria-label="Schliessen">✕</button>
+    </header>
+
+    <section class="box">
+      <h3>Benachrichtigungen</h3>
+      <p id="push-status" class="muted small"></p>
+      <button id="btn-push">Auf diesem Gerät einschalten</button>
+    </section>
+
+    <section class="box">
+      <h3>Mitglieder</h3>
+      <ul id="member-list" class="member-list"></ul>
+      <p class="muted small">Die Sicherheitsnummer muss auf allen Geräten gleich aussehen. Vergleicht sie einmal persönlich. Dann weisst du, dass niemand dazwischen mitliest.</p>
+    </section>
+
+    <section class="box">
+      <h3>Mein Name</h3>
+      <form id="form-name" class="row">
+        <input name="name" maxlength="40" required>
+        <button type="submit">Speichern</button>
+      </form>
+    </section>
+
+    <section class="box" id="invite-box" hidden>
+      <h3>Jemanden einladen</h3>
+      <label class="check"><input type="checkbox" id="invite-admin"> darf selbst auch einladen (Admin)</label>
+      <button id="btn-invite" class="primary">Einladungscode erstellen</button>
+      <div id="invite-result" class="invite-result" hidden>
+        <code id="invite-code"></code>
+        <button id="btn-invite-share">Teilen</button>
+      </div>
+      <ul id="invite-list" class="invite-list"></ul>
+    </section>
+
+    <section class="box">
+      <h3>Schlüssel sichern</h3>
+      <p class="muted small">Speichere deinen Schlüssel mit einem Passwort. Bei einem neuen Handy kannst du damit alle alten Nachrichten wieder lesen.</p>
+      <form id="form-backup">
+        <input name="pw1" type="password" placeholder="Passwort (mind. 8 Zeichen)" minlength="8" autocomplete="new-password" required>
+        <input name="pw2" type="password" placeholder="Passwort wiederholen" minlength="8" autocomplete="new-password" required>
+        <button type="submit">Sicherung herunterladen</button>
+      </form>
+    </section>
+
+    <section class="box">
+      <button data-logout class="danger">Abmelden</button>
+    </section>
+    <p class="error" data-error></p>
+  </div>
+</dialog>
+
+<!-- Bild in gross -->
+<dialog id="viewer" class="viewer">
+  <img alt="">
+  <button class="icon-btn" data-close aria-label="Schliessen">✕</button>
+</dialog>
+
+<div id="toast" class="toast" hidden></div>
+</body>
+</html>
