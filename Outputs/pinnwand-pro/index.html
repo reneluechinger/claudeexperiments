@@ -1,0 +1,1136 @@
+<title>Meine Pinnwand</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: feste Kopfzeile, darunter eine farbige Tafel mit horizontal scrollenden Listen; Dialoge für Karte und Einstellungen */
+:root {
+  --ink: #1d2a2b; --muted: #5a6b6c; --line: #d3dcdb;
+  --list: #edf2f1; --card: #ffffff; --card-hover: #f5f9f8; --soft: rgba(120,140,140,.16);
+  --accent: #1f6f68; --accent-ink: #ffffff;
+  --top: #10302f; --top-ink: #e8f4f2; --top-soft: rgba(255,255,255,.12);
+  --overlay: rgba(10,25,25,.45);
+  --bg-teal: #2b7a73; --bg-slate: #4a5d74; --bg-plum: #7a4a6b; --bg-moss: #5a7a3c; --bg-clay: #9a5b3c;
+  --l-green: #3a9457; --l-yellow: #d9b425; --l-orange: #dc772b; --l-red: #cf4646; --l-purple: #8758c0; --l-blue: #3778d2;
+  --chip-ink: #ffffff; --chip-ink-dark: #2a2306;
+  --over: #c43d3d; --soon: #a86d12; --done: #2b844a;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --r: 8px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ink: #e1ebe9; --muted: #9db0ae; --line: #33403f;
+  --list: #172122; --card: #243132; --card-hover: #2b3b3c; --soft: rgba(160,190,190,.14);
+  --accent: #5cc0b4; --accent-ink: #0b1f1d;
+  --top: #0a1616; --top-ink: #d9eeea; --top-soft: rgba(255,255,255,.08);
+  --overlay: rgba(0,0,0,.6);
+  --bg-teal: #17403c; --bg-slate: #253141; --bg-plum: #3e2737; --bg-moss: #2d3d1f; --bg-clay: #4a2d1f;
+  --over: #ef7a7a; --soon: #e4b45a; --done: #6fcf8f;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --ink: #e1ebe9; --muted: #9db0ae; --line: #33403f;
+  --list: #172122; --card: #243132; --card-hover: #2b3b3c; --soft: rgba(160,190,190,.14);
+  --accent: #5cc0b4; --accent-ink: #0b1f1d;
+  --top: #0a1616; --top-ink: #d9eeea; --top-soft: rgba(255,255,255,.08);
+  --overlay: rgba(0,0,0,.6);
+  --bg-teal: #17403c; --bg-slate: #253141; --bg-plum: #3e2737; --bg-moss: #2d3d1f; --bg-clay: #4a2d1f;
+  --over: #ef7a7a; --soon: #e4b45a; --done: #6fcf8f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--top); color: var(--ink); font: 15px/1.45 var(--f-body); }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+a { color: var(--accent); }
+
+.app { height: 100%; display: flex; flex-direction: column; --board: var(--bg-teal); }
+.app[data-bg="slate"] { --board: var(--bg-slate); } .app[data-bg="plum"] { --board: var(--bg-plum); }
+.app[data-bg="moss"] { --board: var(--bg-moss); } .app[data-bg="clay"] { --board: var(--bg-clay); }
+
+.topbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--top); color: var(--top-ink);
+}
+.brand { font: 700 18px/1 var(--f-display); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.brand svg { width: 20px; height: 20px; }
+.tb-btn { border: 0; background: var(--top-soft); color: var(--top-ink); border-radius: 6px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tb-btn:hover { background: rgba(255,255,255,.2); }
+.tb-btn.on { background: var(--accent); color: var(--accent-ink); }
+.tb-btn svg { width: 14px; height: 14px; }
+.board-name { font: 700 19px/1.2 var(--f-display); background: transparent; border: 1px solid transparent; color: var(--top-ink); border-radius: 6px; padding: 4px 8px; min-width: 0; flex: 1 1 12ch; max-width: 30ch; }
+.board-name:hover { background: var(--top-soft); }
+.board-name:focus { background: var(--card); color: var(--ink); outline: none; border-color: var(--accent); }
+.spacer { flex: 1 1 0; }
+.search { border: 0; border-radius: 6px; padding: 6px 10px; background: var(--top-soft); color: var(--top-ink); min-width: 0; flex: 0 1 13rem; }
+.search::placeholder { color: var(--top-ink); opacity: .7; }
+.search:focus { background: var(--card); color: var(--ink); outline: 2px solid var(--accent); }
+.sync { font-size: 12px; opacity: .75; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.badge-n { background: var(--l-red); color: #fff; border-radius: 9px; font-size: 11px; font-weight: 700; padding: 1px 6px; }
+
+.board { flex: 1; min-height: 0; background: var(--board); overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; }
+.lists { display: flex; align-items: flex-start; gap: 12px; height: 100%; padding-block: 14px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); width: max-content; }
+.list { width: 280px; flex: 0 0 280px; max-height: 100%; display: flex; flex-direction: column; background: var(--list); border-radius: 12px; box-shadow: 0 1px 0 rgba(0,0,0,.18); }
+.list-head { display: flex; align-items: center; gap: 6px; padding: 10px 8px 6px 12px; cursor: grab; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.list-title { font: 600 15px/1.3 var(--f-display); margin: 0; flex: 1; min-width: 0; overflow-wrap: anywhere; cursor: pointer; }
+.list-title-input { flex: 1; min-width: 0; font: 600 15px/1.3 var(--f-display); border: 2px solid var(--accent); border-radius: 6px; padding: 2px 6px; background: var(--card); }
+.list-tags { display: flex; gap: 4px; padding: 0 12px 4px; flex-wrap: wrap; }
+.tag { font-size: 11px; color: var(--muted); background: var(--soft); border-radius: 4px; padding: 1px 6px; }
+.count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.icon-btn { border: 0; background: transparent; border-radius: 6px; width: 30px; height: 30px; display: grid; place-items: center; color: var(--muted); flex: none; }
+.icon-btn:hover { background: var(--soft); color: var(--ink); }
+.icon-btn svg { width: 16px; height: 16px; }
+
+.cards { display: flex; flex-direction: column; gap: 8px; padding: 4px 8px; overflow-y: auto; min-height: 8px; }
+.card { flex: none; background: var(--card); border-radius: var(--r); box-shadow: 0 1px 1px rgba(0,0,0,.14), 0 0 0 1px rgba(0,0,0,.03); padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 6px; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overflow: hidden; }
+.card:hover { background: var(--card-hover); }
+.card .cover { margin: -8px -10px 2px; height: 30px; }
+.card-row { display: flex; gap: 8px; align-items: flex-start; }
+.card-title { overflow-wrap: anywhere; flex: 1; min-width: 0; }
+.card.is-done .card-title { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 50%, transparent); }
+.check { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; border: 2px solid var(--muted); background: transparent; display: grid; place-items: center; padding: 0; color: transparent; opacity: .55; transition: opacity .12s; }
+.card:hover .check, .check:focus-visible, .check.on { opacity: 1; }
+@media (hover: none) { .check { opacity: 1; } }
+.check.on { background: var(--done); border-color: var(--done); color: var(--card); }
+.check svg { width: 12px; height: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-size: 11px; font-weight: 600; line-height: 1; padding: 4px 7px; border-radius: 4px; color: var(--chip-ink); }
+.chip.yellow { color: var(--chip-ink-dark); }
+.badges { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 2px 5px; margin-left: -5px; }
+.badge svg { width: 14px; height: 14px; }
+.badge.over { background: var(--over); color: var(--card); }
+.badge.soon { background: var(--soon); color: var(--card); }
+.badge.done { background: var(--done); color: var(--card); }
+.badge.all { color: var(--done); font-weight: 600; }
+.bg-green { background: var(--l-green); } .bg-yellow { background: var(--l-yellow); } .bg-orange { background: var(--l-orange); }
+.bg-red { background: var(--l-red); } .bg-purple { background: var(--l-purple); } .bg-blue { background: var(--l-blue); }
+
+.composer { padding: 6px 8px 10px; display: flex; flex-direction: column; gap: 8px; }
+.add-btn { border: 0; background: transparent; text-align: left; border-radius: 8px; padding: 8px 10px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.add-btn:hover { background: var(--soft); color: var(--ink); }
+.composer textarea, .composer input { width: 100%; border: 0; border-radius: var(--r); padding: 8px 10px; background: var(--card); resize: none; box-shadow: 0 1px 1px rgba(0,0,0,.14); }
+.composer textarea { min-height: 62px; }
+.hint { font-size: 12px; color: var(--muted); }
+.row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.btn { border: 0; border-radius: 6px; padding: 7px 12px; background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: var(--soft); color: var(--ink); font-weight: 500; }
+.btn.danger { background: var(--l-red); color: #fff; }
+.btn[disabled] { opacity: .5; cursor: default; }
+.add-list { width: 280px; flex: 0 0 280px; border-radius: 12px; }
+.add-list > .add-btn { width: 100%; background: rgba(255,255,255,.2); color: #fff; padding: 11px 14px; border-radius: 12px; }
+.add-list > .add-btn:hover { background: rgba(255,255,255,.3); color: #fff; }
+.add-list.open { background: var(--list); }
+
+.drag-ghost { position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none; margin: 0; box-shadow: 0 12px 28px rgba(0,0,0,.3); opacity: .96; }
+.list.drag-ghost { max-height: 70vh; overflow: hidden; }
+.src { display: none !important; }
+.placeholder { border-radius: var(--r); background: rgba(0,0,0,.12); flex: none; }
+.list-ph { width: 280px; flex: 0 0 280px; border-radius: 12px; background: rgba(0,0,0,.18); }
+body.is-dragging, body.is-dragging * { cursor: grabbing !important; }
+
+.state { margin: auto; max-width: 34rem; text-align: center; color: #fff; padding: 40px 16px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.state h2 { font: 700 22px/1.2 var(--f-display); margin: 0; }
+.state p { margin: 0; opacity: .9; }
+
+.pop { position: fixed; z-index: 60; width: 290px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); overflow: auto; background: var(--card); color: var(--ink); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.28); padding: 8px; border: 1px solid var(--line); }
+.pop h3 { font: 600 13px/1.3 var(--f-body); text-align: center; color: var(--muted); margin: 4px 0 8px; }
+.pop .item { display: flex; width: 100%; text-align: left; border: 0; background: transparent; border-radius: 6px; padding: 8px 10px; gap: 8px; align-items: center; }
+.pop .item:hover { background: var(--soft); }
+.pop .item.cur { font-weight: 600; }
+.pop hr { border: 0; border-top: 1px solid var(--line); margin: 6px 0; }
+.swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 4px; }
+.swatch { height: 34px; border-radius: 6px; border: 2px solid transparent; }
+.swatch.cur { border-color: var(--ink); }
+.sw-teal { background: var(--bg-teal); } .sw-slate { background: var(--bg-slate); } .sw-plum { background: var(--bg-plum); } .sw-moss { background: var(--bg-moss); } .sw-clay { background: var(--bg-clay); }
+
+dialog { border: 0; padding: 0; border-radius: 14px; background: var(--list); color: var(--ink); width: min(760px, calc(100vw - 24px)); max-height: calc(100% - 40px); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+dialog::backdrop { background: var(--overlay); }
+.dlg-wrap { position: relative; }
+.dlg-cover { height: 64px; border-radius: 14px 14px 0 0; }
+.dlg-body { padding: 18px 20px 22px; display: grid; grid-template-columns: minmax(0,1fr) 190px; gap: 18px 22px; }
+.dlg-head { grid-column: 1 / -1; display: flex; gap: 10px; align-items: flex-start; padding-right: 36px; }
+.dlg-title { display: block; width: calc(100% + 8px); font: 700 21px/1.25 var(--f-display); border: 2px solid transparent; border-radius: 6px; background: transparent; padding: 2px 6px; margin-left: -8px; resize: none; overflow: hidden; }
+.dlg-title:focus { background: var(--card); border-color: var(--accent); outline: none; }
+.dlg-sub { font-size: 13px; color: var(--muted); margin-top: 2px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.dlg-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.dlg-side { display: flex; flex-direction: column; gap: 8px; }
+.sec-h { font: 600 12px/1 var(--f-body); text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin: 0 0 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.side-btn { border: 0; text-align: left; background: var(--soft); border-radius: 6px; padding: 7px 10px; display: flex; gap: 8px; align-items: center; }
+.side-btn:hover { filter: brightness(.95); }
+.side-btn svg { width: 15px; height: 15px; flex: none; }
+.side-btn.danger:hover { background: var(--l-red); color: #fff; filter: none; }
+.field { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; background: var(--card); }
+select.field { width: auto; max-width: 100%; }
+textarea.field { min-height: 140px; resize: vertical; line-height: 1.5; }
+.md { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; cursor: text; min-height: 44px; overflow-wrap: anywhere; }
+.md:hover { border-color: var(--muted); }
+.md p, .md ul, .md ol, .md h4 { margin: 0 0 8px; }
+.md :last-child { margin-bottom: 0; }
+.md h4 { font: 600 15px/1.3 var(--f-display); }
+.md ul, .md ol { padding-left: 20px; }
+.md.empty { color: var(--muted); }
+.label-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.label-tog { border: 0; border-radius: 5px; padding: 6px 10px; font-size: 13px; font-weight: 600; color: var(--chip-ink); opacity: .45; }
+.label-tog.yellow { color: var(--chip-ink-dark); }
+.label-tog[aria-pressed="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--list), 0 0 0 4px var(--ink); }
+.due-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.due-row .field { width: auto; }
+.check-inline { display: inline-flex; gap: 6px; align-items: center; }
+.cl { margin-bottom: 14px; }
+.cl-name { font: 600 14px/1.3 var(--f-display); border: 1px solid transparent; background: transparent; border-radius: 4px; padding: 1px 4px; margin-left: -5px; min-width: 0; flex: 1; }
+.cl-name:focus { background: var(--card); outline: 2px solid var(--accent); }
+.progress { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; margin: 4px 0 6px; }
+.bar { flex: 1; height: 8px; border-radius: 4px; background: var(--soft); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); }
+.bar.full > i { background: var(--done); }
+.cl-item { display: flex; gap: 8px; align-items: flex-start; padding: 3px 4px; border-radius: 6px; }
+.cl-item:hover { background: var(--soft); }
+.cl-item input[type=checkbox] { margin-top: 4px; width: 16px; height: 16px; accent-color: var(--accent); flex: none; }
+.cl-item .t { flex: 1; min-width: 0; border: 0; background: transparent; padding: 1px 4px; border-radius: 4px; resize: none; overflow: hidden; line-height: 1.4; }
+.cl-item .t:focus { background: var(--card); outline: 2px solid var(--accent); }
+.cl-item.ok .t { text-decoration: line-through; color: var(--muted); }
+.cl-item .icon-btn { width: 24px; height: 24px; opacity: 0; }
+.cl-item:hover .icon-btn, .cl-item .icon-btn:focus-visible { opacity: 1; }
+@media (hover: none) { .cl-item .icon-btn { opacity: .7; } }
+.cl-add { display: flex; gap: 6px; margin-top: 6px; }
+.cover-pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.cover-pick button { height: 26px; border-radius: 5px; border: 2px solid transparent; }
+.cover-pick button.cur { border-color: var(--ink); }
+.cover-pick .none { background: transparent; border: 1px dashed var(--muted); font-size: 11px; color: var(--muted); grid-column: span 2; }
+.close-x { position: absolute; top: 10px; right: 10px; background: var(--soft); z-index: 2; }
+
+.panel { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.panel h2 { font: 700 20px/1.2 var(--f-display); margin: 0; padding-right: 40px; }
+.panel h3 { font: 600 15px/1.3 var(--f-display); margin: 0; }
+.panel p { margin: 0; color: var(--muted); font-size: 14px; max-width: 62ch; }
+.panel section { display: flex; flex-direction: column; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.form-grid { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 14px; align-items: center; }
+.form-grid label { font-size: 14px; }
+.rec-item { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 10px; }
+.rec-item:first-of-type { border-top: 0; padding-top: 0; }
+.rec-item .meta { font-size: 13px; color: var(--muted); }
+.days { display: flex; gap: 4px; flex-wrap: wrap; }
+.days label { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; background: var(--soft); border-radius: 5px; padding: 3px 7px; }
+.steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+code, .mono { font: 13px/1.4 ui-monospace, Menlo, Consolas, monospace; background: var(--soft); border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.arch-item { display: flex; gap: 10px; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding: 8px 0 0; }
+.arch-item:first-child { border-top: 0; }
+.arch-item span { min-width: 0; overflow-wrap: anywhere; }
+
+.toast { position: fixed; z-index: 70; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--top); color: var(--top-ink); border-radius: 10px; padding: 10px 12px 10px 16px; display: flex; gap: 12px; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.3); max-width: calc(100vw - 32px); }
+.toast button { background: var(--top-soft); color: var(--top-ink); border: 0; border-radius: 6px; padding: 5px 10px; font-weight: 600; }
+
+@media (max-width: 680px) {
+  .dlg-body { grid-template-columns: 1fr; }
+  .dlg-side { flex-direction: row; flex-wrap: wrap; }
+  .dlg-side .sec-h { width: 100%; }
+  .search { flex: 1 1 100%; order: 10; }
+  .board-name { order: 9; flex: 1 1 100%; max-width: none; margin-left: -8px; }
+  .tb-btn .lbl, .sync { display: none; }
+  .form-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="2" width="5" height="16" rx="1.5" fill="currentColor"/><rect x="7.5" y="2" width="5" height="10" rx="1.5" fill="currentColor" opacity=".75"/><rect x="14" y="2" width="5" height="13" rx="1.5" fill="currentColor" opacity=".5"/></svg>Pinnwand</div>
+    <button class="tb-btn" id="boardSwitch" aria-haspopup="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12M2 8h12M2 13h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="lbl">Boards</span></button>
+    <input class="board-name" id="boardName" aria-label="Name des Boards" disabled>
+    <div class="spacer"></div>
+    <span class="sync" id="sync">Verbinde …</span>
+    <input class="search" id="search" type="search" placeholder="Karten filtern …" aria-label="Karten filtern">
+    <button class="tb-btn" id="captureBtn" title="Capture-Mails abholen"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12v8H2z M2 4l6 5 6-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="lbl">Capture</span><span class="badge-n" id="capN" hidden></span></button>
+    <button class="tb-btn" id="labelFilter" aria-haspopup="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-4.5 5.5V13l-3 1.5v-6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="lbl">Labels</span></button>
+    <button class="tb-btn" id="boardMenu" aria-haspopup="true"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.6" fill="currentColor"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="13" cy="8" r="1.6" fill="currentColor"/></svg><span class="lbl">Menü</span></button>
+  </header>
+  <main class="board" id="board">
+    <div class="lists" id="lists"><div class="state"><h2>Pinnwand wird geladen</h2><p>Deine Boards und Karten kommen aus der Datenbank dieser Seite.</p></div></div>
+  </main>
+</div>
+
+<div class="pop" id="pop" hidden role="menu"></div>
+<dialog id="cardDlg" aria-label="Karte bearbeiten"><div class="dlg-wrap" id="cardDlgBody"></div></dialog>
+<dialog id="panelDlg" aria-label="Einstellungen"><div class="dlg-wrap"><button class="icon-btn close-x" id="panelClose" aria-label="Schliessen" autofocus><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button><div id="panelBody"></div></div></dialog>
+<div class="toast" id="toast" hidden role="status"><span id="toastMsg"></span><button id="toastUndo">Rückgängig</button></div>
+
+<script>
+(() => {
+'use strict';
+// ---------- Grundlagen ----------
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = (p = '') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const nowIso = () => new Date().toISOString();
+const pad = (n) => String(n).padStart(2, '0');
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const COLORS = ['green', 'yellow', 'orange', 'red', 'purple', 'blue'];
+const BGS = ['teal', 'slate', 'plum', 'moss', 'clay'];
+const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const pref = { get(k, d) { try { return localStorage.getItem('pw-' + k) ?? d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('pw-' + k, v); } catch (e) {} } };
+const ICON = {
+  clock: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 4.5V8l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  desc: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  check: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 8.2l2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  tick: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  dots: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.5" fill="currentColor"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="13" cy="8" r="1.5" fill="currentColor"/></svg>',
+  x: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+  plus: '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  repeat: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7a5 5 0 0 1 9-2.5M13 9a5 5 0 0 1-9 2.5M12 2v3h-3M4 14v-3h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  mail: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12v8H2z M2 4l6 5 6-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+  copy: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 3H4a1 1 0 0 0-1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+  trash: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 9h5.6l.7-9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+  box: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12v3H2zM3 7v6h10V7M6.5 9.5h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+  link: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7 9a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.8.8M9 7a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.8-.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+};
+
+// ---------- Datum ----------
+function parseDue(s) { if (!s) return null; const [d, t = '00:00'] = s.split('T'); const [y, m, dd] = d.split('-').map(Number); const [h, mi] = t.split(':').map(Number); return new Date(y, m - 1, dd, h, mi); }
+function fmtDue(s) {
+  const d = parseDue(s); if (!d) return '';
+  const t = s.split('T')[1]; const showT = t && t !== '00:00';
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  return `${WD[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}.${sameYear ? '' : d.getFullYear()}${showT ? ' ' + t : ''}`;
+}
+function dueState(c) {
+  if (!c.due) return '';
+  if (c.done) return 'done';
+  const d = parseDue(c.due); const t = c.due.split('T')[1];
+  const end = (!t || t === '00:00') ? new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59) : d;
+  const diff = (end - new Date()) / 864e5;
+  if (diff < 0) return 'over'; if (diff < 2) return 'soon'; return 'ok';
+}
+const DUE_TXT = { over: 'überfällig', soon: 'bald fällig', done: 'erledigt', ok: 'fällig' };
+
+// Kleines Markdown für Beschreibungen
+function inlineMd(s) {
+  return s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (m, t, u) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`)
+    .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, (m, p, u) => `${p}<a href="${u}" target="_blank" rel="noopener">${u.length > 60 ? u.slice(0, 57) + '…' : u}</a>`)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/(^|\W)\*([^*\n]+)\*(?=\W|$)/g, '$1<em>$2</em>');
+}
+function md(src) {
+  const lines = esc(src).split('\n'); let out = '', list = null, para = [];
+  const flushP = () => { if (para.length) { out += `<p>${para.map(inlineMd).join('<br>')}</p>`; para = []; } };
+  const flushL = () => { if (list) { out += `</${list}>`; list = null; } };
+  for (const ln of lines) {
+    let m;
+    if ((m = ln.match(/^\s*[-*•]\s+(.*)/))) { flushP(); if (list !== 'ul') { flushL(); out += '<ul>'; list = 'ul'; } out += `<li>${inlineMd(m[1])}</li>`; }
+    else if ((m = ln.match(/^\s*\d+[.)]\s+(.*)/))) { flushP(); if (list !== 'ol') { flushL(); out += '<ol>'; list = 'ol'; } out += `<li>${inlineMd(m[1])}</li>`; }
+    else if ((m = ln.match(/^#{1,4}\s+(.*)/))) { flushP(); flushL(); out += `<h4>${inlineMd(m[1])}</h4>`; }
+    else if (!ln.trim()) { flushP(); flushL(); }
+    else { flushL(); para.push(ln); }
+  }
+  flushP(); flushL(); return out;
+}
+
+// ---------- Zustand ----------
+let db = null, mcp = null, perms = null;
+const boards = new Map();     // id -> board data
+const cards = new Map();      // id -> card data (aktives Board, nicht archiviert)
+const recurring = new Map();  // id -> def
+let settings = {};
+let activeId = pref.get('board', '');
+let unsubCards = null, booted = false, autoRan = new Set();
+const filter = { q: '', labels: new Set() };
+const board = () => boards.get(activeId);
+const listOf = (b, id) => (b?.lists || []).find((l) => l.id === id);
+
+// Schreibvorgänge pro Dokument nacheinander ausführen
+const chains = new Map();
+function queue(path, fn) {
+  const p = (chains.get(path) || Promise.resolve()).then(fn).catch((e) => { setSync('Fehler beim Speichern'); console.error(path, e); toast(`Speichern fehlgeschlagen: ${e?.message || e?.code || e}`, false); });
+  chains.set(path, p); return p;
+}
+let pending = 0;
+function setSync(t) { $('#sync').textContent = t; }
+function track(p) { pending++; setSync('Speichert …'); return p.finally(() => { if (--pending === 0) setSync('Gespeichert'); }); }
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+function writeCard(id, patch) {
+  patch.updatedAt = nowIso();
+  const c = cards.get(id); if (c) cards.set(id, { ...c, ...patch });
+  return track(queue('cards/' + id, () => db.doc('cards/' + id).update(patch)));
+}
+function createCard(id, data) {
+  data.createdAt = data.createdAt || nowIso(); data.updatedAt = nowIso();
+  if (data.board === activeId && !data.archived) cards.set(id, data);
+  return track(queue('cards/' + id, () => db.doc('cards/' + id).set(data)));
+}
+function removeCard(id) { cards.delete(id); return track(queue('cards/' + id, () => db.doc('cards/' + id).delete())); }
+function writeBoard(id, patch) {
+  const b = boards.get(id); if (b) boards.set(id, { ...b, ...patch });
+  return track(queue('boards/' + id, () => db.doc('boards/' + id).update(patch)));
+}
+
+// ---------- Automationen ----------
+function cardsIn(listId) { return [...cards.values()].filter((c) => c.list === listId); }
+function topPos(listId) { const ps = cardsIn(listId).map((c) => c.pos || 0); return ps.length ? Math.min(...ps) - 1024 : 1024; }
+function endPos(listId) { const ps = cardsIn(listId).map((c) => c.pos || 0); return ps.length ? Math.max(...ps) + 1024 : 1024; }
+function withRules(card, patch, b = boards.get(card.board)) {
+  const r = (b && b.rules) || {}; const out = { ...patch }; const notes = [];
+  const next = { ...card, ...patch };
+  if ('done' in patch && patch.done && !card.done) {
+    out.doneAt = nowIso();
+    if (r.checkMovesToDone && r.doneList && next.list !== r.doneList && !('list' in patch)) { out.list = r.doneList; out.pos = topPos(r.doneList); notes.push('nach «' + (listOf(b, r.doneList)?.name || 'Erledigt') + '» verschoben'); }
+  }
+  if ('done' in patch && !patch.done) out.doneAt = '';
+  if ('due' in patch && patch.due && !card.due && r.dueList && next.list !== r.dueList && next.list !== r.doneList && !('list' in patch) && !next.done) {
+    out.list = r.dueList; out.pos = topPos(r.dueList); notes.push('wegen Datum nach «' + (listOf(b, r.dueList)?.name || 'Terminiert') + '» verschoben');
+  }
+  if ('list' in out && r.doneList) {
+    if (out.list === r.doneList && !next.done && !('done' in patch)) { out.done = true; out.doneAt = nowIso(); }
+    else if (card.list === r.doneList && out.list !== r.doneList && card.done && !('done' in patch)) { out.done = false; out.doneAt = ''; }
+  }
+  return { patch: out, notes };
+}
+function applyCard(id, patch) {
+  const c = cards.get(id); if (!c) return;
+  const { patch: p, notes } = withRules(c, patch);
+  writeCard(id, p);
+  if (notes.length) toast('Automatik: ' + notes.join(', '), false);
+  render();
+}
+
+async function autoArchive(b) {
+  const r = b.rules || {};
+  if (!r.doneList || !(r.archiveAfterDays > 0)) return 0;
+  const limit = Date.now() - r.archiveAfterDays * 864e5; let n = 0;
+  for (const [id, c] of cards) {
+    if (c.list === r.doneList && c.done && c.doneAt && Date.parse(c.doneAt) < limit) { writeCard(id, { archived: true, archivedAt: nowIso() }); cards.delete(id); n++; }
+  }
+  if (n) { render(); toast(`Automatik: ${n} erledigte Karte${n > 1 ? 'n' : ''} archiviert`, false); }
+  return n;
+}
+
+// Wiederkehrende Karten
+function lastOccurrence(def, today) {
+  const r = def.rule || {}; const start = def.start ? parseDue(def.start) : null;
+  for (let i = 0; i < 400; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+    if (start && d < start) return null;
+    const key = ymd(d);
+    if (def.lastCreated && key <= def.lastCreated) return null;
+    let hit = false;
+    if (r.type === 'weekly') hit = (r.days || []).includes(d.getDay());
+    else if (r.type === 'monthly') { const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); hit = d.getDate() === Math.min(r.day || 1, last); }
+    else if (r.type === 'interval') { const base = start || new Date(2026, 0, 1); const diff = Math.round((d - base) / 864e5); hit = diff >= 0 && diff % Math.max(1, (r.every || 1) * (r.unit === 'weeks' ? 7 : 1)) === 0; }
+    if (hit) return d;
+  }
+  return null;
+}
+function fillTitle(t, d) { return t.replace(/\{datum\}/gi, `${WD[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}.`); }
+async function runRecurring(manualId) {
+  const today = new Date(); let made = 0;
+  for (const [id, def] of recurring) {
+    if (manualId ? id !== manualId : def.active === false) continue;
+    const d = manualId ? today : lastOccurrence(def, today);
+    if (!d) continue;
+    const key = ymd(d); const cid = `rec-${id}-${key}`;
+    const exists = cards.has(cid) || (await db.doc('cards/' + cid).get()).exists;
+    if (!exists) {
+      const b = boards.get(def.board); if (!b) continue;
+      const list = listOf(b, def.list) ? def.list : b.lists[0]?.id;
+      const items = (def.checklist || '').split('\n').map((s) => s.trim()).filter(Boolean);
+      await createCard(cid, {
+        board: def.board, list, pos: def.board === activeId ? topPos(list) : -Date.now(),
+        title: fillTitle(def.title, d), desc: def.desc || '', labels: def.labels || [],
+        due: def.withDue ? `${key}T${def.time || '00:00'}` : '', done: false, doneAt: '',
+        checklists: items.length ? [{ id: 'c0', name: 'Checkliste', items: items.map((t, i) => ({ id: 'i' + i, text: t, done: false })) }] : [],
+        cover: '', archived: false, source: 'recurring', recurringId: id,
+      });
+      made++;
+    }
+    if (!def.lastCreated || key > def.lastCreated) { recurring.set(id, { ...def, lastCreated: key }); await track(queue('recurring/' + id, () => db.doc('recurring/' + id).update({ lastCreated: key }))); }
+  }
+  if (made) { render(); toast(`Automatik: ${made} wiederkehrende Karte${made > 1 ? 'n' : ''} erstellt`, false); }
+  return made;
+}
+
+// ---------- Capture über Gmail ----------
+let capBusy = false;
+function parseCapture(text, b) {
+  let title = text; let due = ''; const labels = [];
+  title = title.replace(/(^|\s)#([\p{L}\d_-]+)/gu, (m, sp, tag) => {
+    const l = (b.labels || []).find((x) => x.name.toLowerCase().startsWith(tag.toLowerCase()));
+    if (l) { if (!labels.includes(l.id)) labels.push(l.id); return sp; } return m;
+  });
+  title = title.replace(/(^|\s)@(heute|morgen|übermorgen|mo|di|mi|do|fr|sa|so|\d{1,2}\.\d{1,2}\.?(?:\d{2,4})?)(?:\s+(\d{1,2})[:.](\d{2}))?(?=\s|$)/i, (m, sp, w, h, mi) => {
+    const t = new Date(); t.setHours(0, 0, 0, 0); let d = null; const k = w.toLowerCase();
+    if (k === 'heute') d = t; else if (k === 'morgen') d = new Date(t.getTime() + 864e5); else if (k === 'übermorgen') d = new Date(t.getTime() + 2 * 864e5);
+    else if (WD.map((x) => x.toLowerCase()).includes(k)) { const target = WD.map((x) => x.toLowerCase()).indexOf(k); let add = (target - t.getDay() + 7) % 7 || 7; d = new Date(t.getFullYear(), t.getMonth(), t.getDate() + add); }
+    else { const [dd, mm, yy] = k.split('.').filter(Boolean).map(Number); let y = yy ? (yy < 100 ? 2000 + yy : yy) : t.getFullYear(); d = new Date(y, mm - 1, dd); if (!yy && d < t) d = new Date(y + 1, mm - 1, dd); }
+    due = `${ymd(d)}T${h ? pad(+h) + ':' + mi : '00:00'}`; return sp;
+  });
+  return { title: title.replace(/\s+/g, ' ').trim() || text.trim(), due, labels };
+}
+function mcpMessage(e) {
+  const c = e?.code;
+  if (c === 'server_not_connected') return 'Gmail ist nicht verbunden. Verbinde Gmail in claude.ai unter Einstellungen → Connectors.';
+  if (c === 'needs_reauth') return 'Gmail muss neu verbunden werden: claude.ai → Einstellungen → Connectors.';
+  if (c === 'not_in_manifest') return 'Der Gmail-Zugriff ist für diese Seite ausgeschaltet. Erlaube ihn über das Berechtigungs-Menü der Seite.';
+  if (c === 'approval_required') return 'Der Gmail-Zugriff braucht deine Bestätigung. Tippe nochmals auf Capture.';
+  if (c === 'selection_required') return 'Du hast mehrere Gmail-Konten verbunden. Wähle eines in der Abfrage von claude.ai.';
+  if (c === 'blocked_by_policy') return 'Gmail ist für dieses Konto gesperrt.';
+  if (c === 'server_unavailable') return 'Gmail antwortet gerade nicht. Versuch es in einer Minute nochmals.';
+  return 'Capture fehlgeschlagen: ' + (e?.message || c || 'unbekannter Fehler');
+}
+async function fetchCaptures(manual) {
+  if (capBusy) return; if (!mcp) { if (manual) toast('Capture braucht den Gmail-Zugriff, der in dieser Ansicht nicht verfügbar ist.', false); return; }
+  const capBoard = boards.get(settings.captureBoard) || board(); if (!capBoard) return;
+  const capList = listOf(capBoard, settings.captureList) ? settings.captureList : capBoard.lists[0]?.id;
+  capBusy = true; $('#captureBtn').classList.add('on'); setSync('Prüfe Capture-Mails …');
+  let n = 0;
+  try {
+    const labelName = settings.gmailLabel || 'Pinnwand/erfasst';
+    const q = `subject:"[Capture]" -label:${labelName.replace(/[\/\s]/g, '-')} newer_than:90d`;
+    const res = await mcp.callTool('Gmail', 'search_threads', { query: q, pageSize: 25 }, { cache: false });
+    const threads = res.payload?.threads || [];
+    let labelId = settings.gmailLabelId;
+    for (const t of threads) {
+      for (const m of t.messages || []) {
+        if (!/\[capture\]/i.test(m.subject || '')) continue;
+        if (labelId && (m.labelIds || []).includes(labelId)) continue;
+        const cid = 'cap-' + m.id;
+        const exists = cards.has(cid) || (await db.doc('cards/' + cid).get()).exists;
+        if (!exists) {
+          const raw = (m.subject || '').replace(/\[capture\]\s*:?/i, '').trim();
+          const p = parseCapture(raw, capBoard);
+          let data = { board: capBoard.id, list: capList, pos: capBoard.id === activeId ? topPos(capList) : -Date.now(), title: p.title, desc: (m.snippet || '').trim(), labels: p.labels, due: '', done: false, doneAt: '', checklists: [], cover: '', archived: false, source: 'capture', mailUrl: m.viewUrl || '' };
+          if (p.due) { const { patch } = withRules(data, { due: p.due }, capBoard); data = { ...data, ...patch }; }
+          await createCard(cid, data); n++;
+        }
+        try { await mcp.callTool('Gmail', 'label_message', { messageId: m.id, labelIds: [labelId || 'Label_28'] }); }
+        catch (e) {
+          if (e?.code === 'tool_error') {
+            const ls = await mcp.callTool('Gmail', 'list_labels', {}, { cache: false });
+            const found = (ls.payload?.labels || []).find((l) => (l.name || l.displayName) === labelName);
+            if (found) { labelId = found.id || found.labelId; settings.gmailLabelId = labelId; db.doc('meta/settings').update({ gmailLabelId: labelId }); await mcp.callTool('Gmail', 'label_message', { messageId: m.id, labelIds: [labelId] }); }
+          } else throw e;
+        }
+      }
+    }
+    if (n) { render(); toast(`${n} neue Capture-Karte${n > 1 ? 'n' : ''} in «${listOf(capBoard, capList)?.name}»`, false); }
+    else if (manual) toast('Keine neuen Capture-Mails', false);
+    setSync('Gespeichert');
+  } catch (e) { setSync('Capture nicht möglich'); toast(mcpMessage(e), false); }
+  finally { capBusy = false; $('#captureBtn').classList.remove('on'); }
+}
+$('#captureBtn').addEventListener('click', () => fetchCaptures(true));
+
+// ---------- Darstellung ----------
+const listsEl = $('#lists');
+let composerOpen = null, addListOpen = false, dragging = false, renderQueued = false;
+function matches(c) {
+  if (filter.q && !(c.title + ' ' + (c.desc || '')).toLowerCase().includes(filter.q)) return false;
+  if (filter.labels.size && !(c.labels || []).some((l) => filter.labels.has(l))) return false;
+  return true;
+}
+function sortCards(list, arr) {
+  if (list.sort === 'due') return arr.sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999') || (a.pos || 0) - (b.pos || 0));
+  return arr.sort((a, b) => (a.pos || 0) - (b.pos || 0));
+}
+function cardHTML(id, c, b) {
+  const ds = dueState(c);
+  const items = (c.checklists || []).flatMap((x) => x.items || []);
+  const total = items.length, okN = items.filter((i) => i.done).length;
+  const chips = (c.labels || []).map((l) => (b.labels || []).find((x) => x.id === l)).filter(Boolean).map((l) => `<span class="chip bg-${l.color} ${l.color}">${esc(l.name)}</span>`).join('');
+  const badges = [
+    ds ? `<span class="badge ${ds === 'ok' ? '' : ds}" title="${DUE_TXT[ds]}">${ICON.clock}${fmtDue(c.due)}</span>` : '',
+    c.desc ? `<span class="badge" title="Hat Beschreibung">${ICON.desc}</span>` : '',
+    total ? `<span class="badge ${okN === total ? 'all' : ''}" title="Checkliste">${ICON.check}${okN}/${total}</span>` : '',
+    c.source === 'recurring' ? `<span class="badge" title="Wiederkehrend">${ICON.repeat}</span>` : '',
+    c.source === 'capture' ? `<span class="badge" title="Aus Capture-Mail">${ICON.mail}</span>` : '',
+  ].join('');
+  return `<article class="card${c.done ? ' is-done' : ''}" data-card="${id}" tabindex="0"${matches(c) ? '' : ' hidden'}>
+    ${c.cover ? `<div class="cover bg-${c.cover}"></div>` : ''}
+    ${chips ? `<div class="chips">${chips}</div>` : ''}
+    <div class="card-row"><button class="check${c.done ? ' on' : ''}" data-act="toggle-done" aria-label="${c.done ? 'Als offen markieren' : 'Als erledigt markieren'}" aria-pressed="${!!c.done}">${ICON.tick}</button><div class="card-title">${esc(c.title)}</div></div>
+    ${badges.trim() ? `<div class="badges">${badges}</div>` : ''}
+  </article>`;
+}
+function render() {
+  if (dragging) { renderQueued = true; return; }
+  const b = board();
+  if (!b) return;
+  $('#app').dataset.bg = b.bg || 'teal';
+  const bn = $('#boardName'); if (document.activeElement !== bn) bn.value = b.name; bn.disabled = false;
+  document.title = b.name + ' · Pinnwand';
+  $('#labelFilter').classList.toggle('on', filter.labels.size > 0);
+  const scroll = $('#board').scrollLeft;
+  const byList = new Map(b.lists.map((l) => [l.id, []]));
+  for (const [id, c] of cards) { (byList.get(c.list) || byList.get(b.lists[0]?.id))?.push({ id, ...c }); }
+  const r = b.rules || {};
+  listsEl.innerHTML = b.lists.map((l) => {
+    const arr = sortCards(l, byList.get(l.id) || []);
+    const vis = arr.filter(matches).length;
+    const tags = [l.id === r.doneList ? 'Erledigt-Liste' : '', l.id === r.dueList ? 'Termine' : '', l.sort === 'due' ? 'nach Datum sortiert' : '', settings.captureBoard === b.id && settings.captureList === l.id ? 'Capture' : ''].filter(Boolean);
+    return `<section class="list" data-list="${l.id}">
+      <header class="list-head">
+        <h2 class="list-title" data-act="rename-list" tabindex="0">${esc(l.name)}</h2>
+        <span class="count">${vis === arr.length ? arr.length : vis + '/' + arr.length}</span>
+        <button class="icon-btn" data-act="list-menu" aria-label="Listenaktionen">${ICON.dots}</button>
+      </header>
+      ${tags.length ? `<div class="list-tags">${tags.map((t) => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+      <div class="cards" data-cards="${l.id}">${arr.map((c) => cardHTML(c.id, c, b)).join('')}</div>
+      ${composerOpen === l.id
+        ? `<div class="composer"><textarea id="newCard" placeholder="Titel … (#label @morgen 14:00)" aria-label="Titel der neuen Karte"></textarea>
+            <div class="row"><button class="btn" data-act="add-card">Karte hinzufügen</button><button class="icon-btn" data-act="cancel-card" aria-label="Abbrechen">${ICON.x}</button></div></div>`
+        : `<div class="composer"><button class="add-btn" data-act="open-composer">${ICON.plus} Karte hinzufügen</button></div>`}
+    </section>`;
+  }).join('') + `<div class="add-list${addListOpen ? ' open' : ''}" id="addList">${addListOpen
+    ? `<div class="composer" style="padding:8px"><input id="newList" placeholder="Listenname eingeben …" aria-label="Name der neuen Liste"><div class="row"><button class="btn" data-act="add-list">Liste hinzufügen</button><button class="icon-btn" data-act="cancel-list" aria-label="Abbrechen">${ICON.x}</button></div></div>`
+    : `<button class="add-btn" data-act="open-add-list">${ICON.plus} Weitere Liste hinzufügen</button>`}</div>`;
+  $('#board').scrollLeft = scroll;
+  if (composerOpen) $('#newCard')?.focus();
+  if (addListOpen) $('#newList')?.focus();
+}
+
+// ---------- Board-Interaktion ----------
+let suppressClick = false;
+listsEl.addEventListener('click', (e) => {
+  if (suppressClick || !board()) return;
+  const act = e.target.closest('[data-act]');
+  const listEl = e.target.closest('[data-list]');
+  const list = listEl && listOf(board(), listEl.dataset.list);
+  const cardEl = e.target.closest('[data-card]');
+  if (act) {
+    const a = act.dataset.act;
+    if (a === 'toggle-done') { const c = cards.get(cardEl.dataset.card); applyCard(cardEl.dataset.card, { done: !c.done }); }
+    else if (a === 'open-composer') { composerOpen = list.id; addListOpen = false; render(); }
+    else if (a === 'cancel-card') { composerOpen = null; render(); }
+    else if (a === 'add-card') submitCard();
+    else if (a === 'open-add-list') { addListOpen = true; composerOpen = null; render(); }
+    else if (a === 'cancel-list') { addListOpen = false; render(); }
+    else if (a === 'add-list') submitList();
+    else if (a === 'rename-list') editListTitle(act, list);
+    else if (a === 'list-menu') listMenu(act, list);
+    return;
+  }
+  if (cardEl) openCard(cardEl.dataset.card);
+});
+listsEl.addEventListener('keydown', (e) => {
+  if (e.target.id === 'newCard') { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitCard(); } if (e.key === 'Escape') { composerOpen = null; render(); } }
+  else if (e.target.id === 'newList') { if (e.key === 'Enter') { e.preventDefault(); submitList(); } if (e.key === 'Escape') { addListOpen = false; render(); } }
+  else if (e.key === 'Enter' && e.target.matches('[data-card]')) openCard(e.target.dataset.card);
+  else if (e.key === 'Enter' && e.target.matches('.list-title')) e.target.click();
+});
+function submitCard() {
+  const t = $('#newCard'); const raw = t.value.trim(); if (!raw) { t.focus(); return; }
+  const b = board(); const p = parseCapture(raw, b); const listId = composerOpen;
+  let data = { board: b.id, list: listId, pos: endPos(listId), title: p.title, desc: '', labels: p.labels, due: '', done: false, doneAt: '', checklists: [], cover: '', archived: false, source: 'manual' };
+  let notes = [];
+  if (p.due) { const res = withRules(data, { due: p.due }, b); data = { ...data, ...res.patch }; notes = res.notes; }
+  createCard(uid('k-'), data); render();
+  if (notes.length) toast('Automatik: ' + notes.join(', '), false);
+  const cont = listsEl.querySelector(`[data-cards="${listId}"]`); if (cont) cont.scrollTop = cont.scrollHeight;
+}
+function submitList() {
+  const t = $('#newList'); const name = t.value.trim(); if (!name) { t.focus(); return; }
+  const b = board(); writeBoard(b.id, { lists: [...clone(b.lists), { id: uid('l-'), name }] });
+  render(); const bd = $('#board'); bd.scrollLeft = bd.scrollWidth;
+}
+function editListTitle(h, list) {
+  const inp = document.createElement('input'); inp.className = 'list-title-input'; inp.value = list.name; inp.setAttribute('aria-label', 'Listenname');
+  h.replaceWith(inp); inp.focus(); inp.select(); let done = false;
+  const commit = (ok) => { if (done) return; done = true; const v = inp.value.trim(); if (ok && v && v !== list.name) { const b = board(); writeBoard(b.id, { lists: b.lists.map((l) => l.id === list.id ? { ...l, name: v } : l) }); } render(); };
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') commit(true); if (e.key === 'Escape') commit(false); });
+  inp.addEventListener('blur', () => commit(true));
+}
+
+// ---------- Popover ----------
+const pop = $('#pop'); let popHandler = null;
+function openPop(anchor, html, handler) {
+  pop.innerHTML = html; pop.hidden = false; popHandler = handler;
+  const r = anchor.getBoundingClientRect(); const w = pop.offsetWidth, h = pop.offsetHeight;
+  let left = Math.max(16, Math.min(r.left, window.innerWidth - w - 16));
+  let top = r.bottom + 6; if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  pop.style.left = left + 'px'; pop.style.top = top + 'px';
+  pop.querySelector('button, input')?.focus();
+}
+const closePop = () => { pop.hidden = true; popHandler = null; };
+pop.addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (b && popHandler) popHandler(b.dataset.p, b, e); });
+document.addEventListener('pointerdown', (e) => { if (!pop.hidden && !pop.contains(e.target) && !e.target.closest('[aria-haspopup],[data-act="list-menu"]')) closePop(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) closePop(); });
+
+function listMenu(btn, list) {
+  const b = board(); const r = b.rules || {};
+  const others = b.lists.filter((l) => l !== list); const arr = cardsIn(list.id);
+  openPop(btn, `<h3>Liste «${esc(list.name)}»</h3>
+    <button class="item" data-p="add">Karte hinzufügen</button>
+    <button class="item" data-p="sort">${list.sort === 'due' ? 'Feste Reihenfolge statt Datum' : 'Immer nach Datum sortieren'}</button>
+    <button class="item" data-p="done">${r.doneList === list.id ? 'Ist Erledigt-Liste ✓' : 'Als Erledigt-Liste festlegen'}</button>
+    <button class="item" data-p="due">${r.dueList === list.id ? 'Ist Termin-Liste ✓' : 'Karten mit Datum hierher'}</button>
+    <button class="item" data-p="cap">${settings.captureBoard === b.id && settings.captureList === list.id ? 'Ist Capture-Ziel ✓' : 'Capture-Mails hierher'}</button>
+    <hr><button class="item" data-p="left">← nach links</button><button class="item" data-p="right">nach rechts →</button>
+    ${others.length && arr.length ? `<hr><h3>Alle ${arr.length} Karten verschieben nach</h3>${others.map((o) => `<button class="item" data-p="move:${o.id}">${esc(o.name)}</button>`).join('')}` : ''}
+    <hr><button class="item" data-p="archive">Alle Karten archivieren</button><button class="item" data-p="del">Liste löschen${arr.length ? ' (nur wenn leer)' : ''}</button>`, (p) => {
+    closePop();
+    const rules = { ...r };
+    if (p === 'add') { composerOpen = list.id; render(); return; }
+    if (p === 'sort') { writeBoard(b.id, { lists: b.lists.map((l) => l.id === list.id ? { ...l, sort: l.sort === 'due' ? '' : 'due' } : l) }); }
+    if (p === 'done') { rules.doneList = r.doneList === list.id ? '' : list.id; writeBoard(b.id, { rules }); }
+    if (p === 'due') { rules.dueList = r.dueList === list.id ? '' : list.id; writeBoard(b.id, { rules }); }
+    if (p === 'cap') { settings = { ...settings, captureBoard: b.id, captureList: list.id }; track(queue('meta/settings', () => db.doc('meta/settings').update({ captureBoard: b.id, captureList: list.id }))); }
+    if (p === 'left' || p === 'right') { const ls = clone(b.lists); const i = ls.findIndex((l) => l.id === list.id); const j = i + (p === 'left' ? -1 : 1); if (j >= 0 && j < ls.length) { [ls[i], ls[j]] = [ls[j], ls[i]]; writeBoard(b.id, { lists: ls }); } }
+    if (p.startsWith('move:')) { const to = p.slice(5); const base = endPos(to); entriesIn(list.id).forEach(([id], i) => applyCard(id, { list: to, pos: base + i * 1024 })); }
+    if (p === 'archive') { const es = entriesIn(list.id); es.forEach(([id]) => { writeCard(id, { archived: true, archivedAt: nowIso() }); cards.delete(id); }); toast(`${es.length} Karten archiviert`, false); }
+    if (p === 'del') { if (arr.length) { toast('Die Liste enthält noch Karten. Verschiebe oder archiviere sie zuerst.', false); return; } writeBoard(b.id, { lists: b.lists.filter((l) => l.id !== list.id) }); }
+    render();
+  });
+}
+function entriesIn(listId) { const l = listOf(board(), listId); return sortCards(l || {}, [...cards].filter(([, c]) => c.list === listId).map(([id, c]) => ({ id, ...c }))).map((c) => [c.id, c]); }
+
+// ---------- Kopfzeile ----------
+let nameTimer = null;
+$('#boardName').addEventListener('input', (e) => { clearTimeout(nameTimer); const v = e.target.value; nameTimer = setTimeout(() => { if (v.trim()) writeBoard(activeId, { name: v.trim() }); }, 600); });
+$('#boardName').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); });
+$('#search').addEventListener('input', (e) => { filter.q = e.target.value.trim().toLowerCase(); render(); });
+document.addEventListener('keydown', (e) => { if (e.key === '/' && !e.target.closest('input, textarea, select') && !document.querySelector('dialog[open]')) { e.preventDefault(); $('#search').focus(); } });
+
+function orderedBoards() { const order = settings.boardOrder || []; return [...boards.entries()].sort((a, b) => (order.indexOf(a[0]) + 1 || 99) - (order.indexOf(b[0]) + 1 || 99) || (a[1].order || 0) - (b[1].order || 0)); }
+$('#boardSwitch').addEventListener('click', (e) => {
+  openPop(e.currentTarget, `<h3>Deine Boards</h3>` + orderedBoards().map(([id, b]) =>
+    `<button class="item${id === activeId ? ' cur' : ''}" data-p="go:${id}"><span class="swatch sw-${b.bg}" style="width:22px;height:16px;border:0;flex:none"></span>${esc(b.name)}</button>`).join('') +
+    `<hr><button class="item" data-p="new">${ICON.plus} Neues Board erstellen</button>`, (p) => {
+    closePop();
+    if (p === 'new') {
+      const id = uid('b-'); const data = { name: 'Neues Board', bg: BGS[boards.size % BGS.length], order: boards.size + 1, labels: clone(board()?.labels || []).filter((l) => !['goodlife', 'classroom'].includes(l.id)),
+        lists: ['Zu erledigen', 'In Arbeit', 'Erledigt'].map((n) => ({ id: uid('l-'), name: n })), rules: { checkMovesToDone: true, archiveAfterDays: 7, dueList: '' } };
+      data.rules.doneList = data.lists[2].id; boards.set(id, { ...data, id });
+      track(queue('boards/' + id, () => db.doc('boards/' + id).set(data)));
+      const order = [...(settings.boardOrder || []), id]; settings.boardOrder = order; track(queue('meta/settings', () => db.doc('meta/settings').update({ boardOrder: order })));
+      switchBoard(id); setTimeout(() => { const n = $('#boardName'); n.focus(); n.select(); }, 50);
+    } else switchBoard(p.slice(3));
+  });
+});
+$('#labelFilter').addEventListener('click', (e) => {
+  const anchor = e.currentTarget;
+  const draw = () => `<h3>Nach Labels filtern</h3>` + (board().labels || []).map((l) => `<button class="item" data-p="${l.id}" aria-pressed="${filter.labels.has(l.id)}"><input type="checkbox" tabindex="-1" ${filter.labels.has(l.id) ? 'checked' : ''}><span class="chip bg-${l.color} ${l.color}">${esc(l.name)}</span></button>`).join('') + `<hr><button class="item" data-p="clear">Filter zurücksetzen</button>`;
+  const handler = (p) => { if (p === 'clear') filter.labels.clear(); else filter.labels.has(p) ? filter.labels.delete(p) : filter.labels.add(p); render(); openPop(anchor, draw(), handler); };
+  openPop(anchor, draw(), handler);
+});
+$('#boardMenu').addEventListener('click', (e) => {
+  const b = board(); if (!b) return;
+  openPop(e.currentTarget, `<h3>Hintergrund</h3><div class="swatches">${BGS.map((bg) => `<button class="swatch sw-${bg}${b.bg === bg ? ' cur' : ''}" data-p="bg:${bg}" aria-label="Hintergrund ${bg}"></button>`).join('')}</div>
+    <hr><button class="item" data-p="auto">${ICON.check.replace('<svg', '<svg width="16" height="16"')} Automationen</button>
+    <button class="item" data-p="rec">${ICON.repeat.replace('<svg', '<svg width="16" height="16"')} Wiederkehrende Karten</button>
+    <button class="item" data-p="cap">${ICON.mail.replace('<svg', '<svg width="16" height="16"')} Capture mit Apple Kurzbefehlen</button>
+    <button class="item" data-p="labels">Labels bearbeiten</button>
+    <button class="item" data-p="arch">${ICON.box.replace('<svg', '<svg width="16" height="16"')} Archiv</button>
+    ${b.trelloUrl ? `<hr><a class="item" href="${esc(b.trelloUrl)}" target="_blank" rel="noopener">${ICON.link.replace('<svg', '<svg width="16" height="16"')} Original in Trello öffnen</a>` : ''}
+    <hr><button class="item" data-p="del">Board löschen …</button>`, (p) => {
+    if (p.startsWith('bg:')) { writeBoard(b.id, { bg: p.slice(3) }); render(); $('#boardMenu').click(); return; }
+    closePop();
+    if (p === 'auto') openAutomations(); if (p === 'rec') openRecurring(); if (p === 'cap') openCaptureHelp();
+    if (p === 'labels') openLabels(); if (p === 'arch') openArchive(); if (p === 'del') openDeleteBoard();
+  });
+});
+function switchBoard(id) {
+  if (!boards.has(id)) return;
+  activeId = id; pref.set('board', id); filter.labels.clear(); composerOpen = null; addListOpen = false;
+  subscribeCards();
+}
+
+// ---------- Toast & Rückgängig ----------
+let undoFn = null, toastTimer = null;
+function toast(msg, undo) {
+  $('#toastMsg').textContent = msg; undoFn = typeof undo === 'function' ? undo : null;
+  $('#toastUndo').hidden = !undoFn; $('#toast').hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('#toast').hidden = true; }, 6500);
+}
+$('#toastUndo').addEventListener('click', () => { if (undoFn) undoFn(); undoFn = null; $('#toast').hidden = true; });
+
+// ---------- Kartendialog ----------
+const dlg = $('#cardDlg'), dlgBody = $('#cardDlgBody'); let openId = null;
+function openCard(id) { openId = id; renderCard(); if (!dlg.open) dlg.showModal(); autosizeAll(); dlg.scrollTop = 0; }
+dlg.addEventListener('close', () => { flushText(); openId = null; render(); });
+dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+function autosize(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+function autosizeAll() { dlgBody.querySelectorAll('.dlg-title, .cl-item .t').forEach(autosize); }
+let editingDesc = false;
+function renderCard(focusSel) {
+  const c = cards.get(openId); if (!c) { if (dlg.open) dlg.close(); return; }
+  const b = board(); const list = listOf(b, c.list);
+  const ds = dueState(c);
+  const cls = c.checklists || [];
+  const [dDate, dTime] = (c.due || '').split('T');
+  dlgBody.innerHTML = `
+    ${c.cover ? `<div class="dlg-cover bg-${c.cover}"></div>` : ''}
+    <button class="icon-btn close-x" data-c="close" aria-label="Schliessen" autofocus>${ICON.x}</button>
+    <div class="dlg-body">
+      <div class="dlg-head"><button class="check${c.done ? ' on' : ''}" data-c="done" style="margin-top:8px" aria-label="Erledigt umschalten" aria-pressed="${!!c.done}">${ICON.tick}</button><div style="flex:1;min-width:0">
+        <textarea class="dlg-title" id="cTitle" rows="1" aria-label="Kartentitel">${esc(c.title)}</textarea>
+        <div class="dlg-sub">in Liste <select id="cList" class="field" style="padding:2px 6px" aria-label="Liste">${b.lists.map((l) => `<option value="${l.id}"${l === list ? ' selected' : ''}>${esc(l.name)}</option>`).join('')}</select>
+        ${boards.size > 1 ? `<select id="cBoard" class="field" style="padding:2px 6px" aria-label="Auf anderes Board verschieben"><option value="">Board wechseln …</option>${orderedBoards().filter(([id]) => id !== b.id).map(([id, x]) => `<option value="${id}">${esc(x.name)}</option>`).join('')}</select>` : ''}</div>
+      </div></div>
+      <div class="dlg-main">
+        <section><h3 class="sec-h">Labels</h3><div class="label-pick">${(b.labels || []).map((l) => `<button class="label-tog bg-${l.color} ${l.color}" data-c="label:${l.id}" aria-pressed="${(c.labels || []).includes(l.id)}">${esc(l.name)}</button>`).join('')}</div></section>
+        <section><h3 class="sec-h">Fälligkeit</h3><div class="due-row">
+          <input type="date" class="field" id="cDue" value="${dDate || ''}" aria-label="Datum">
+          <input type="time" class="field" id="cTime" value="${dTime && dTime !== '00:00' ? dTime : ''}" aria-label="Uhrzeit" ${dDate ? '' : 'disabled'}>
+          ${ds && ds !== 'ok' ? `<span class="badge ${ds}">${DUE_TXT[ds]}</span>` : ''}
+          ${c.due ? `<button class="btn ghost" data-c="clear-due">Entfernen</button>` : ''}
+        </div></section>
+        <section><h3 class="sec-h">Beschreibung ${c.desc && !editingDesc ? '<button class="btn ghost" data-c="edit-desc">Bearbeiten</button>' : ''}</h3>
+          ${editingDesc || !c.desc ? `<textarea class="field" id="cDesc" placeholder="Details, Links, Notizen … (Markdown: **fett**, - Liste)" aria-label="Beschreibung">${esc(c.desc || '')}</textarea>${editingDesc ? '<div class="row" style="margin-top:6px"><button class="btn" data-c="save-desc">Fertig</button></div>' : ''}`
+            : `<div class="md" data-c="edit-desc" title="Zum Bearbeiten klicken">${md(c.desc)}</div>`}
+          ${c.mailUrl ? `<p class="hint" style="margin-top:6px"><a href="${esc(c.mailUrl)}" target="_blank" rel="noopener">Capture-Mail in Gmail öffnen</a></p>` : ''}
+        </section>
+        <section><h3 class="sec-h">Checklisten <button class="btn ghost" data-c="cl-new">+ Checkliste</button></h3>
+          ${cls.map((cl) => { const it = cl.items || []; const okN = it.filter((i) => i.done).length; const pct = it.length ? Math.round(okN / it.length * 100) : 0; return `<div class="cl" data-cl="${cl.id}">
+            <div class="row"><input class="cl-name" data-cln="${cl.id}" value="${esc(cl.name)}" aria-label="Name der Checkliste"><button class="btn ghost" data-c="cl-hide:${cl.id}">${hideDone.has(cl.id) ? 'Alle zeigen' : 'Erledigte ausblenden'}</button><button class="icon-btn" data-c="cl-del:${cl.id}" aria-label="Checkliste löschen">${ICON.trash}</button></div>
+            ${it.length ? `<div class="progress"><span>${okN}/${it.length}</span><div class="bar${pct === 100 ? ' full' : ''}"><i style="width:${pct}%"></i></div></div>` : ''}
+            ${it.filter((i) => !(hideDone.has(cl.id) && i.done)).map((i) => `<div class="cl-item${i.done ? ' ok' : ''}"><input type="checkbox" data-ck="${cl.id}|${i.id}" ${i.done ? 'checked' : ''} aria-label="Punkt abhaken"><textarea class="t" rows="1" data-ct="${cl.id}|${i.id}" aria-label="Checklistenpunkt">${esc(i.text)}</textarea><button class="icon-btn" data-c="it-del:${cl.id}|${i.id}" aria-label="Punkt löschen">${ICON.x}</button></div>`).join('')}
+            <div class="cl-add"><input class="field" data-cladd="${cl.id}" placeholder="Punkt hinzufügen …" aria-label="Neuer Punkt"><button class="btn" data-c="it-add:${cl.id}">+</button></div>
+          </div>`; }).join('') || '<p class="hint">Noch keine Checkliste.</p>'}
+        </section>
+      </div>
+      <aside class="dlg-side">
+        <h3 class="sec-h">Titelfarbe</h3>
+        <div class="cover-pick">${COLORS.map((col) => `<button class="bg-${col}${c.cover === col ? ' cur' : ''}" data-c="cover:${col}" aria-label="Titelfarbe ${col}"></button>`).join('')}<button class="none${!c.cover ? ' cur' : ''}" data-c="cover:" aria-label="Keine Titelfarbe">keine</button></div>
+        <h3 class="sec-h" style="margin-top:12px">Aktionen</h3>
+        <button class="side-btn" data-c="top">↑ An den Listenanfang</button>
+        <button class="side-btn" data-c="dup">${ICON.copy} Duplizieren</button>
+        <button class="side-btn" data-c="make-rec">${ICON.repeat} Wiederkehrend machen</button>
+        <button class="side-btn" data-c="arch">${ICON.box} Archivieren</button>
+        <button class="side-btn danger" data-c="del">${ICON.trash} Löschen</button>
+        ${c.trelloUrl ? `<a class="side-btn" href="${esc(c.trelloUrl)}" target="_blank" rel="noopener">${ICON.link} In Trello</a>` : ''}
+        <p class="hint" style="margin-top:8px">Zuletzt geändert ${c.updatedAt ? new Date(c.updatedAt).toLocaleString('de-CH', { dateStyle: 'short', timeStyle: 'short' }) : '–'}</p>
+      </aside>
+    </div>`;
+  if (dlg.open) autosizeAll();
+  if (focusSel) dlgBody.querySelector(focusSel)?.focus();
+}
+const hideDone = new Set();
+// Text mit Verzögerung speichern
+const textTimers = new Map();
+function saveText(key, fn) { clearTimeout(textTimers.get(key)?.t); const entry = { fn, t: setTimeout(() => { textTimers.delete(key); fn(); }, 700) }; textTimers.set(key, entry); }
+function flushText() { for (const [k, e] of textTimers) { clearTimeout(e.t); e.fn(); } textTimers.clear(); }
+function mutateChecklists(c, f) { const cls = clone(c.checklists || []); f(cls); return cls; }
+
+dlgBody.addEventListener('input', (e) => {
+  const id = openId; const c = cards.get(id); if (!c) return; const t = e.target;
+  if (t.id === 'cTitle') { autosize(t); const v = t.value.replace(/\n/g, ' '); saveText('title', () => { if (v.trim()) writeCard(id, { title: v.trim() }); }); }
+  else if (t.id === 'cDesc') { const v = t.value; saveText('desc', () => writeCard(id, { desc: v })); }
+  else if (t.dataset.ct) { autosize(t); const [cl, it] = t.dataset.ct.split('|'); const v = t.value.replace(/\n/g, ' '); saveText('ct' + it, () => { const cc = cards.get(id); writeCard(id, { checklists: mutateChecklists(cc, (cls) => { const x = cls.find((q) => q.id === cl)?.items.find((q) => q.id === it); if (x) x.text = v; }) }); }); }
+  else if (t.dataset.cln) { const v = t.value; const cl = t.dataset.cln; saveText('cln' + cl, () => { const cc = cards.get(id); writeCard(id, { checklists: mutateChecklists(cc, (cls) => { const x = cls.find((q) => q.id === cl); if (x) x.name = v; }) }); }); }
+});
+dlgBody.addEventListener('change', (e) => {
+  const id = openId; const c = cards.get(id); if (!c) return; const t = e.target;
+  if (t.id === 'cDue' || t.id === 'cTime') {
+    const d = $('#cDue', dlgBody).value; const tm = $('#cTime', dlgBody).value || '00:00';
+    applyCard(id, { due: d ? `${d}T${tm}` : '' }); renderCard();
+  } else if (t.dataset.ck) {
+    const [cl, it] = t.dataset.ck.split('|');
+    writeCard(id, { checklists: mutateChecklists(c, (cls) => { const x = cls.find((q) => q.id === cl)?.items.find((q) => q.id === it); if (x) x.done = t.checked; }) });
+    renderCard(); render();
+  } else if (t.id === 'cList') { applyCard(id, { list: t.value, pos: topPos(t.value) }); renderCard(); }
+  else if (t.id === 'cBoard' && t.value) {
+    const nb = boards.get(t.value); const target = nb.lists[0]?.id;
+    flushText(); writeCard(id, { board: t.value, list: target, pos: -Date.now(), labels: (c.labels || []).filter((l) => (nb.labels || []).some((x) => x.id === l)) });
+    cards.delete(id); dlg.close(); toast(`Karte nach «${nb.name}» verschoben`, false);
+  }
+});
+dlgBody.addEventListener('keydown', (e) => {
+  if (e.target.id === 'cTitle' && e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+  if (e.target.dataset.ct && e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+  if (e.target.dataset.cladd && e.key === 'Enter') { e.preventDefault(); addItem(e.target.dataset.cladd); }
+});
+function addItem(cl) {
+  const inp = dlgBody.querySelector(`[data-cladd="${cl}"]`); const v = inp.value.trim(); if (!v) return;
+  const c = cards.get(openId); flushText();
+  writeCard(openId, { checklists: mutateChecklists(c, (cls) => cls.find((q) => q.id === cl)?.items.push({ id: uid('i'), text: v, done: false })) });
+  renderCard(`[data-cladd="${cl}"]`); render();
+}
+dlgBody.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-c]'); if (!btn) return;
+  const p = btn.dataset.c; const id = openId; const c = cards.get(id); if (!c) return;
+  if (p === 'close') return dlg.close();
+  flushText();
+  const cc = cards.get(id);
+  if (p === 'done') { applyCard(id, { done: !cc.done }); }
+  else if (p.startsWith('label:')) { const l = p.slice(6); const ls = cc.labels || []; writeCard(id, { labels: ls.includes(l) ? ls.filter((x) => x !== l) : [...ls, l] }); }
+  else if (p.startsWith('cover:')) writeCard(id, { cover: p.slice(6) });
+  else if (p === 'clear-due') applyCard(id, { due: '' });
+  else if (p === 'edit-desc') { editingDesc = true; renderCard('#cDesc'); return; }
+  else if (p === 'save-desc') { editingDesc = false; }
+  else if (p === 'cl-new') { writeCard(id, { checklists: [...clone(cc.checklists || []), { id: uid('c'), name: 'Checkliste', items: [] }] }); renderCard(); dlgBody.querySelector('.cl:last-of-type [data-cladd]')?.focus(); render(); return; }
+  else if (p.startsWith('cl-del:')) { const cl = p.slice(7); const before = clone(cc.checklists || []); writeCard(id, { checklists: before.filter((x) => x.id !== cl) }); toast('Checkliste gelöscht', () => writeCard(id, { checklists: before }) && (renderCard(), render())); }
+  else if (p.startsWith('cl-hide:')) { const cl = p.slice(8); hideDone.has(cl) ? hideDone.delete(cl) : hideDone.add(cl); }
+  else if (p.startsWith('it-add:')) return addItem(p.slice(7));
+  else if (p.startsWith('it-del:')) { const [cl, it] = p.slice(7).split('|'); writeCard(id, { checklists: mutateChecklists(cc, (cls) => { const x = cls.find((q) => q.id === cl); if (x) x.items = x.items.filter((q) => q.id !== it); }) }); }
+  else if (p === 'top') { applyCard(id, { pos: topPos(cc.list) }); }
+  else if (p === 'dup') { const nid = uid('k-'); const copy = clone(cc); copy.title += ' (Kopie)'; copy.pos = (cc.pos || 0) + 1; copy.source = 'manual'; delete copy.trelloUrl; createCard(nid, copy); render(); openCard(nid); return; }
+  else if (p === 'make-rec') { dlg.close(); openRecurring({ board: cc.board, list: cc.list, title: cc.title, labels: cc.labels || [], checklist: (cc.checklists?.[0]?.items || []).map((i) => i.text).join('\n') }); return; }
+  else if (p === 'arch') { writeCard(id, { archived: true, archivedAt: nowIso() }); cards.delete(id); dlg.close(); toast(`«${cc.title}» archiviert`, () => { writeCard(id, { archived: false }); }); return; }
+  else if (p === 'del') { const copy = clone(cc); removeCard(id); dlg.close(); toast(`«${cc.title}» gelöscht`, () => createCard(id, copy).then(render)); return; }
+  renderCard(); render();
+});
+
+// ---------- Ziehen & Ablegen ----------
+const boardEl = $('#board'); let drag = null;
+listsEl.addEventListener('pointerdown', (e) => {
+  if (e.button !== 0 || drag) return;
+  if (e.target.closest('button, input, textarea, select, a')) return;
+  const cardEl = e.target.closest('.card'); const head = !cardEl && e.target.closest('.list-head');
+  const el = cardEl || (head && head.closest('.list')); if (!el) return;
+  drag = { type: cardEl ? 'card' : 'list', el, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, pid: e.pointerId, touch: e.pointerType !== 'mouse', active: false };
+  if (drag.touch) drag.timer = setTimeout(() => { if (drag && !drag.active) startDrag(); }, 320);
+});
+window.addEventListener('pointermove', (e) => {
+  if (!drag || e.pointerId !== drag.pid) return; drag.x = e.clientX; drag.y = e.clientY;
+  if (!drag.active) { const d = Math.hypot(drag.x - drag.sx, drag.y - drag.sy); if (drag.touch) { if (d > 10) { clearTimeout(drag.timer); drag = null; } return; } if (d < 5) return; startDrag(); }
+  moveDrag();
+});
+window.addEventListener('pointerup', (e) => { if (drag && e.pointerId === drag.pid) finishDrag(true); });
+window.addEventListener('pointercancel', (e) => { if (drag && e.pointerId === drag.pid) finishDrag(false); });
+document.addEventListener('touchmove', (e) => { if (drag && drag.active) e.preventDefault(); }, { passive: false });
+document.addEventListener('contextmenu', (e) => { if (drag) e.preventDefault(); });
+function startDrag() {
+  const r = drag.el.getBoundingClientRect(); drag.active = true; dragging = true; drag.ox = drag.sx - r.left; drag.oy = drag.sy - r.top;
+  const g = drag.el.cloneNode(true); g.classList.add('drag-ghost'); g.removeAttribute('data-card'); g.removeAttribute('data-list'); g.querySelectorAll('[data-cards]').forEach((n) => n.removeAttribute('data-cards')); g.style.width = r.width + 'px'; document.body.appendChild(g); drag.ghost = g;
+  const ph = document.createElement('div'); ph.className = 'placeholder ' + (drag.type === 'card' ? 'card-ph' : 'list-ph'); ph.style.height = Math.min(r.height, drag.type === 'list' ? 400 : r.height) + 'px';
+  drag.el.after(ph); drag.ph = ph; drag.el.classList.add('src'); document.body.classList.add('is-dragging');
+  if (drag.touch && navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+  const loop = () => { if (!drag || !drag.active) return; autoScroll(); drag.raf = requestAnimationFrame(loop); }; drag.raf = requestAnimationFrame(loop);
+  moveDrag();
+}
+function moveDrag() {
+  const { x, y } = drag; drag.ghost.style.transform = `translate(${x - drag.ox}px, ${y - drag.oy}px) rotate(${drag.type === 'card' ? 3 : 2}deg)`;
+  const under = document.elementFromPoint(x, y);
+  if (drag.type === 'card') {
+    let cont = under && under.closest('[data-cards]'); if (!cont) { const l = under && under.closest('[data-list]'); if (l) cont = l.querySelector('[data-cards]'); } if (!cont) return;
+    let before = null; for (const it of cont.querySelectorAll('.card:not(.src):not([hidden])')) { const r = it.getBoundingClientRect(); if (y < r.top + r.height / 2) { before = it; break; } }
+    if (before) { if (before.previousElementSibling !== drag.ph) cont.insertBefore(drag.ph, before); } else if (cont.lastElementChild !== drag.ph) cont.appendChild(drag.ph);
+  } else {
+    let before = null; for (const it of listsEl.querySelectorAll('.list:not(.src)')) { const r = it.getBoundingClientRect(); if (x < r.left + r.width / 2) { before = it; break; } }
+    const target = before || $('#addList'); if (target.previousElementSibling !== drag.ph) listsEl.insertBefore(drag.ph, target);
+  }
+}
+function autoScroll() {
+  const r = boardEl.getBoundingClientRect(), edge = 70; let moved = false;
+  if (drag.x > r.right - edge) { boardEl.scrollLeft += Math.ceil((drag.x - (r.right - edge)) / 5); moved = true; }
+  else if (drag.x < r.left + edge) { boardEl.scrollLeft -= Math.ceil(((r.left + edge) - drag.x) / 5); moved = true; }
+  if (drag.type === 'card') { const cont = drag.ph.parentElement; if (cont && cont.matches('[data-cards]')) { const cr = cont.getBoundingClientRect(); if (drag.y > cr.bottom - 40) { cont.scrollTop += 8; moved = true; } else if (drag.y < cr.top + 40) { cont.scrollTop -= 8; moved = true; } } }
+  if (moved) moveDrag();
+}
+function finishDrag(commit) {
+  const d = drag; drag = null; clearTimeout(d.timer); if (!d.active) return;
+  cancelAnimationFrame(d.raf); document.body.classList.remove('is-dragging'); d.ghost.remove(); dragging = false;
+  if (commit) {
+    const b = board();
+    if (d.type === 'card') {
+      const cid = d.el.dataset.card; const toList = d.ph.parentElement.dataset.cards;
+      const sib = (dir) => { let n = d.ph[dir]; while (n && (!n.dataset?.card || n === d.el)) n = n[dir]; return n ? cards.get(n.dataset.card) : null; };
+      const prev = sib('previousElementSibling'), next = sib('nextElementSibling');
+      const pos = prev && next ? ((prev.pos || 0) + (next.pos || 0)) / 2 : prev ? (prev.pos || 0) + 1024 : next ? (next.pos || 0) - 1024 : 1024;
+      const c = cards.get(cid);
+      if (c && (c.list !== toList || c.pos !== pos)) applyCard(cid, c.list !== toList ? { list: toList, pos } : { pos });
+    } else {
+      const ids = [...listsEl.children].map((n) => n === d.ph ? d.el.dataset.list : (n.dataset?.list && n !== d.el ? n.dataset.list : null)).filter(Boolean);
+      const ls = ids.map((id) => b.lists.find((l) => l.id === id)).filter(Boolean);
+      if (ls.length === b.lists.length && ls.some((l, i) => l !== b.lists[i])) writeBoard(b.id, { lists: clone(ls) });
+    }
+  }
+  d.ph.remove(); d.el.classList.remove('src'); renderQueued = false; render();
+  suppressClick = true; setTimeout(() => { suppressClick = false; }, 0);
+}
+
+// ---------- Panels ----------
+const panelDlg = $('#panelDlg'), panelBody = $('#panelBody');
+$('#panelClose').addEventListener('click', () => panelDlg.close());
+panelDlg.addEventListener('click', (e) => { if (e.target === panelDlg) panelDlg.close(); });
+function openPanel(html, bind) { panelBody.innerHTML = html; if (!panelDlg.open) panelDlg.showModal(); panelDlg.scrollTop = 0; bind && bind(panelBody); }
+const listOptions = (b, sel, empty) => (empty ? `<option value="">${empty}</option>` : '') + b.lists.map((l) => `<option value="${l.id}"${l.id === sel ? ' selected' : ''}>${esc(l.name)}</option>`).join('');
+
+function openAutomations() {
+  const b = board(); const r = b.rules || {};
+  openPanel(`<div class="panel"><h2>Automationen für «${esc(b.name)}»</h2>
+    <p>Die Regeln laufen in der Pinnwand selbst, sobald du etwas änderst oder die Seite öffnest.</p>
+    <section><h3>Erledigt</h3><div class="form-grid">
+      <label for="aDone">Erledigt-Liste</label><select class="field" id="aDone">${listOptions(b, r.doneList, '– keine –')}</select>
+      <label for="aCheck">Abhaken verschiebt</label><label class="check-inline"><input type="checkbox" id="aCheck" ${r.checkMovesToDone ? 'checked' : ''}> Wenn ich den Haken setze, kommt die Karte in die Erledigt-Liste</label>
+      <label for="aArch">Archivieren nach</label><span class="row"><input type="number" min="0" max="365" class="field" id="aArch" style="width:6rem" value="${r.archiveAfterDays || 0}"> Tagen in der Erledigt-Liste (0 = nie)</span>
+    </div><p>Wer eine Karte von Hand in die Erledigt-Liste zieht, hakt sie damit automatisch ab.</p></section>
+    <section><h3>Termine</h3><div class="form-grid">
+      <label for="aDue">Karten mit Datum</label><select class="field" id="aDue">${listOptions(b, r.dueList, '– bleiben, wo sie sind –')}</select>
+    </div><p>Bekommt eine offene Karte zum ersten Mal ein Datum, wandert sie in diese Liste. So hast du es bisher in Trello mit «🌱 TERMINIERT» gemacht.</p></section>
+    <section><h3>Weitere Automatik</h3><p><strong>Wiederkehrende Karten</strong> und <strong>Capture per Mail</strong> stellst du im Menü ein.</p>
+      <div class="row"><button class="btn ghost" id="aRec">Wiederkehrende Karten</button><button class="btn ghost" id="aCap">Capture einrichten</button></div></section>
+    <div class="row"><button class="btn" id="aSave">Speichern</button></div></div>`, (el) => {
+    $('#aRec', el).onclick = () => openRecurring(); $('#aCap', el).onclick = () => openCaptureHelp();
+    $('#aSave', el).onclick = () => {
+      writeBoard(b.id, { rules: { ...r, doneList: $('#aDone', el).value, checkMovesToDone: $('#aCheck', el).checked, archiveAfterDays: Math.max(0, +$('#aArch', el).value || 0), dueList: $('#aDue', el).value } });
+      panelDlg.close(); render(); toast('Automationen gespeichert', false); autoArchive(board());
+    };
+  });
+}
+
+const RULE_TXT = (r) => r?.type === 'weekly' ? 'jeden ' + (r.days || []).map((d) => WD[d]).join(', ') : r?.type === 'monthly' ? `monatlich am ${r.day}.` : r?.type === 'interval' ? `alle ${r.every} ${r.unit === 'weeks' ? 'Wochen' : 'Tage'}` : '–';
+function openRecurring(prefill) {
+  const items = [...recurring.entries()].sort((a, b) => a[1].title.localeCompare(b[1].title, 'de'));
+  const listHtml = items.length ? items.map(([id, d]) => { const b = boards.get(d.board); return `<div class="rec-item"><div><strong>${esc(d.title)}</strong>${d.active === false ? ' <span class="tag">pausiert</span>' : ''}<div class="meta">${RULE_TXT(d.rule)} · ${esc(b?.name || '?')} → ${esc(listOf(b, d.list)?.name || '?')}${d.lastCreated ? ' · zuletzt ' + d.lastCreated.split('-').reverse().join('.') : ''}</div></div>
+    <div class="row"><button class="btn ghost" data-r="now:${id}">Jetzt erstellen</button><button class="btn ghost" data-r="edit:${id}">Bearbeiten</button></div></div>`; }).join('')
+    : '<p>Noch keine wiederkehrenden Karten. Lege unten die erste an, zum Beispiel «Wochenplanung» jeden Montag.</p>';
+  openPanel(`<div class="panel"><h2>Wiederkehrende Karten</h2>
+    <p>Beim Öffnen der Pinnwand entsteht die Karte des letzten fälligen Tages, falls sie noch fehlt. Verpasste Tage werden nicht mehrfach nachgeholt.</p>
+    <section>${listHtml}</section>
+    <section id="recForm"></section></div>`, (el) => {
+    el.addEventListener('click', async (e) => {
+      const t = e.target.closest('[data-r]'); if (!t) return; const [a, id] = t.dataset.r.split(':');
+      if (a === 'now') { const n = await runRecurring(id); if (!n) toast('Karte für heute gibt es schon', false); }
+      if (a === 'edit') recForm(el, id, recurring.get(id));
+    });
+    recForm(el, null, prefill);
+  });
+}
+function recForm(el, id, d = {}) {
+  const b = boards.get(d.board) || board(); const r = d.rule || { type: 'weekly', days: [1] };
+  const f = $('#recForm', el);
+  f.innerHTML = `<h3>${id ? 'Bearbeiten' : 'Neue wiederkehrende Karte'}</h3><div class="form-grid">
+    <label for="rTitle">Titel</label><input class="field" id="rTitle" value="${esc(d.title || '')}" placeholder="z. B. Wochenplanung {datum}">
+    <label for="rBoard">Board</label><select class="field" id="rBoard">${orderedBoards().map(([bid, x]) => `<option value="${bid}"${bid === b.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
+    <label for="rList">Liste</label><select class="field" id="rList">${listOptions(b, d.list)}</select>
+    <label for="rType">Rhythmus</label><select class="field" id="rType"><option value="weekly"${r.type === 'weekly' ? ' selected' : ''}>wöchentlich</option><option value="monthly"${r.type === 'monthly' ? ' selected' : ''}>monatlich</option><option value="interval"${r.type === 'interval' ? ' selected' : ''}>alle X Tage/Wochen</option></select>
+    <span>Wann</span><div id="rWhen"></div>
+    <label for="rDue">Fälligkeit setzen</label><span class="row"><label class="check-inline"><input type="checkbox" id="rDue" ${d.withDue ? 'checked' : ''}> am selben Tag um</label><input type="time" class="field" id="rTime" value="${d.time || '07:00'}" style="width:auto"></span>
+    <label for="rCl">Checkliste</label><textarea class="field" id="rCl" style="min-height:80px" placeholder="Ein Punkt pro Zeile">${esc(d.checklist || '')}</textarea>
+    <label for="rActive">Aktiv</label><label class="check-inline"><input type="checkbox" id="rActive" ${d.active === false ? '' : 'checked'}> Karten automatisch erstellen</label>
+  </div><p>Platzhalter <code>{datum}</code> im Titel wird zum Beispiel zu «Mo 19.10.».</p>
+  <div class="row"><button class="btn" id="rSave">${id ? 'Speichern' : 'Anlegen'}</button>${id ? '<button class="btn danger" id="rDel">Löschen</button>' : ''}</div>`;
+  const drawWhen = () => {
+    const t = $('#rType', f).value; const w = $('#rWhen', f);
+    if (t === 'weekly') w.innerHTML = `<div class="days">${[1, 2, 3, 4, 5, 6, 0].map((x) => `<label><input type="checkbox" value="${x}" ${(r.days || []).includes(x) ? 'checked' : ''}>${WD[x]}</label>`).join('')}</div>`;
+    else if (t === 'monthly') w.innerHTML = `<span class="row">am <input type="number" min="1" max="31" class="field" id="rDay" style="width:5rem" value="${r.day || 1}">. des Monats</span>`;
+    else w.innerHTML = `<span class="row">alle <input type="number" min="1" max="365" class="field" id="rEvery" style="width:5rem" value="${r.every || 2}"><select class="field" id="rUnit"><option value="days"${r.unit !== 'weeks' ? ' selected' : ''}>Tage</option><option value="weeks"${r.unit === 'weeks' ? ' selected' : ''}>Wochen</option></select> ab <input type="date" class="field" id="rStart" value="${d.start || ymd(new Date())}" style="width:auto"></span>`;
+  };
+  drawWhen(); $('#rType', f).onchange = drawWhen;
+  $('#rBoard', f).onchange = () => { $('#rList', f).innerHTML = listOptions(boards.get($('#rBoard', f).value)); };
+  $('#rSave', f).onclick = () => {
+    const title = $('#rTitle', f).value.trim(); if (!title) { $('#rTitle', f).focus(); return; }
+    const t = $('#rType', f).value; let rule;
+    if (t === 'weekly') { rule = { type: 'weekly', days: [...f.querySelectorAll('.days input:checked')].map((x) => +x.value) }; if (!rule.days.length) { toast('Wähle mindestens einen Wochentag', false); return; } }
+    else if (t === 'monthly') rule = { type: 'monthly', day: Math.min(31, Math.max(1, +$('#rDay', f).value || 1)) };
+    else rule = { type: 'interval', every: Math.max(1, +$('#rEvery', f).value || 1), unit: $('#rUnit', f).value };
+    const data = { ...(id ? recurring.get(id) : {}), title, board: $('#rBoard', f).value, list: $('#rList', f).value, rule, withDue: $('#rDue', f).checked, time: $('#rTime', f).value || '07:00', checklist: $('#rCl', f).value, active: $('#rActive', f).checked, labels: d.labels || [] };
+    if (t === 'interval') data.start = $('#rStart', f).value || ymd(new Date());
+    if (!id) data.lastCreated = ymd(new Date(Date.now() - 864e5)); // erst ab heute
+    const rid = id || uid('r-'); recurring.set(rid, data);
+    track(queue('recurring/' + rid, () => db.doc('recurring/' + rid).set(data))).then(() => runRecurring());
+    toast(id ? 'Gespeichert' : 'Wiederkehrende Karte angelegt', false); openRecurring();
+  };
+  if (id) $('#rDel', f).onclick = () => { recurring.delete(id); track(queue('recurring/' + id, () => db.doc('recurring/' + id).delete())); openRecurring(); toast('Gelöscht', false); };
+}
+
+function openCaptureHelp() {
+  const capBoard = boards.get(settings.captureBoard); const capList = listOf(capBoard, settings.captureList);
+  openPanel(`<div class="panel"><h2>Capture mit Apple Kurzbefehlen</h2>
+    <p>Du schickst dir per Kurzbefehl eine Mail mit «[Capture]» im Betreff. Die Pinnwand holt solche Mails beim Öffnen ab (oder über den Knopf «Capture») und legt daraus Karten an. Danach bekommt die Mail das Gmail-Label «${esc(settings.gmailLabel || 'Pinnwand/erfasst')}».</p>
+    <section><h3>Ziel</h3><p>Neue Capture-Karten landen in <strong>${esc(capBoard?.name || '?')} → ${esc(capList?.name || '?')}</strong>. Ändern kannst du das im Menü einer Liste («Capture-Mails hierher»).</p></section>
+    <section><h3>Kurzbefehl einrichten (iPhone oder Mac)</h3><ol class="steps">
+      <li>App <strong>Kurzbefehle</strong> öffnen, unten auf <strong>+</strong> tippen.</li>
+      <li>Aktion <strong>«Nach Eingabe fragen»</strong> hinzufügen. Frage: «Was willst du festhalten?», Eingabetyp Text.</li>
+      <li>Aktion <strong>«E-Mail senden»</strong> hinzufügen. Empfänger: <span class="mono">${esc(settings.captureEmail || 'deine Gmail-Adresse')}</span>. Betreff: <span class="mono">[Capture] </span> und danach die Variable <strong>Angegebene Eingabe</strong>.</li>
+      <li>Bei «E-Mail senden» den Pfeil öffnen und <strong>«Erstellungsfenster zeigen»</strong> ausschalten. Absender muss dein Gmail-Konto in Apple Mail sein.</li>
+      <li>Kurzbefehl «Capture» nennen. Tipp: auf den Homescreen legen oder per Siri starten («Hey Siri, Capture»).</li>
+    </ol></section>
+    <section><h3>Abkürzungen im Text</h3><ol class="steps" style="list-style:none;padding-left:0">
+      <li><span class="mono">#schule</span> setzt das passende Label (Anfang des Namens reicht).</li>
+      <li><span class="mono">@morgen</span>, <span class="mono">@fr</span>, <span class="mono">@24.10.</span> oder <span class="mono">@mo 14:00</span> setzt ein Datum. Die Karte wandert dann gemäss Automation in die Termin-Liste.</li>
+      <li>Beispiel: <span class="mono">[Capture] Elternbrief Klausaktion #schule @fr 07:30</span></li>
+    </ol><p>Die gleichen Abkürzungen funktionieren auch, wenn du direkt hier eine Karte anlegst.</p></section>
+    <div class="row"><button class="btn" id="capNow">Jetzt Capture-Mails abholen</button></div></div>`, (el) => { $('#capNow', el).onclick = () => { panelDlg.close(); fetchCaptures(true); }; });
+}
+
+function openLabels() {
+  const b = board();
+  openPanel(`<div class="panel"><h2>Labels von «${esc(b.name)}»</h2><section id="lblList">${(b.labels || []).map((l) => `<div class="row" data-l="${l.id}"><select class="field" data-lc aria-label="Farbe">${COLORS.map((c) => `<option value="${c}"${c === l.color ? ' selected' : ''}>${c}</option>`).join('')}</select><input class="field" style="flex:1;min-width:8rem" data-ln value="${esc(l.name)}" aria-label="Name"><button class="icon-btn" data-ldel aria-label="Label löschen">${ICON.trash}</button></div>`).join('')}</section>
+    <div class="row"><button class="btn ghost" id="lAdd">+ Label</button><button class="btn" id="lSave">Speichern</button></div></div>`, (el) => {
+    $('#lAdd', el).onclick = () => { $('#lblList', el).insertAdjacentHTML('beforeend', `<div class="row" data-l="${uid('lb-')}"><select class="field" data-lc>${COLORS.map((c) => `<option>${c}</option>`).join('')}</select><input class="field" style="flex:1;min-width:8rem" data-ln placeholder="Name"><button class="icon-btn" data-ldel aria-label="Label löschen">${ICON.trash}</button></div>`); };
+    el.addEventListener('click', (e) => { if (e.target.closest('[data-ldel]')) e.target.closest('[data-l]').remove(); });
+    $('#lSave', el).onclick = () => { const labels = [...el.querySelectorAll('[data-l]')].map((r) => ({ id: r.dataset.l, color: $('[data-lc]', r).value, name: $('[data-ln]', r).value.trim() })).filter((l) => l.name); writeBoard(b.id, { labels }); panelDlg.close(); render(); toast('Labels gespeichert', false); };
+  });
+}
+
+async function openArchive() {
+  const b = board();
+  openPanel(`<div class="panel"><h2>Archiv von «${esc(b.name)}»</h2><section id="archList"><p>Lade archivierte Karten …</p></section></div>`);
+  try {
+    const snap = await db.collection('cards').where('board', '==', b.id).where('archived', '==', true).limit(300).get();
+    const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((x, y) => (y.archivedAt || y.updatedAt || '').localeCompare(x.archivedAt || x.updatedAt || ''));
+    $('#archList', panelBody).innerHTML = docs.length ? docs.map((c) => `<div class="arch-item"><span>${esc(c.title)} <span class="hint">· ${esc(listOf(b, c.list)?.name || '')}</span></span><span class="row"><button class="btn ghost" data-a="restore:${c.id}">Wiederherstellen</button><button class="icon-btn" data-a="del:${c.id}" aria-label="Endgültig löschen">${ICON.trash}</button></span></div>`).join('') : '<p>Keine archivierten Karten.</p>';
+    $('#archList', panelBody).onclick = (e) => {
+      const t = e.target.closest('[data-a]'); if (!t) return; const [a, id] = t.dataset.a.split(':'); const c = docs.find((x) => x.id === id);
+      if (a === 'restore') { const lst = listOf(b, c.list) ? c.list : b.lists[0].id; const patch = { archived: false, list: lst, pos: topPos(lst) }; if (b.rules?.doneList === lst) patch.doneAt = nowIso(); cards.set(id, { ...c, ...patch }); writeCard(id, patch); render(); }
+      else removeCard(id);
+      t.closest('.arch-item').remove();
+    };
+  } catch (e) { $('#archList', panelBody).innerHTML = `<p>Archiv konnte nicht geladen werden (${esc(e?.code || e?.message)}).</p>`; }
+}
+function openDeleteBoard() {
+  const b = board();
+  openPanel(`<div class="panel"><h2>Board «${esc(b.name)}» löschen?</h2><p>Das Board verschwindet aus der Übersicht. Die Karten bleiben in der Datenbank, werden aber nicht mehr angezeigt. Tippe zur Bestätigung den Namen des Boards ein.</p>
+    <input class="field" id="delName" aria-label="Name des Boards"><div class="row"><button class="btn danger" id="delGo" disabled>Board löschen</button></div></div>`, (el) => {
+    $('#delName', el).oninput = (e) => { $('#delGo', el).disabled = e.target.value.trim() !== b.name; };
+    $('#delGo', el).onclick = () => { boards.delete(b.id); track(queue('boards/' + b.id, () => db.doc('boards/' + b.id).delete())); panelDlg.close(); const first = orderedBoards()[0]; if (first) switchBoard(first[0]); toast('Board gelöscht', false); };
+  });
+}
+
+// ---------- Datenbank ----------
+function showState(title, text) { listsEl.innerHTML = `<div class="state"><h2>${esc(title)}</h2><p>${text}</p></div>`; }
+function subscribeCards() {
+  if (unsubCards) unsubCards(); cards.clear(); render();
+  if (!board()) return;
+  const bid = activeId;
+  unsubCards = db.collection('cards').where('board', '==', bid).where('archived', '==', false).limit(1000).onSnapshot((snap) => {
+    if (bid !== activeId) return;
+    for (const ch of snap.docChanges()) {
+      if (ch.type === 'removed') cards.delete(ch.doc.id); else cards.set(ch.doc.id, ch.doc.data());
+    }
+    if (!snap.metadata.hasPendingWrites && !pending) setSync(snap.metadata.fromCache ? 'Lädt …' : 'Aktuell');
+    render();
+    if (openId && dlg.open && !dlgBody.contains(document.activeElement) && !textTimers.size && !editingDesc) renderCard();
+    if (!snap.metadata.fromCache && !autoRan.has(bid)) { autoRan.add(bid); autoArchive(board()); }
+  }, (e) => { showState('Karten konnten nicht geladen werden', esc(e?.message || e?.code)); });
+}
+async function boot() {
+  db = await claude.use('db');
+  if (!db) { showState('Datenbank nicht erreichbar', 'Öffne die Pinnwand angemeldet auf claude.ai. Nur dort sind deine Boards gespeichert.'); setSync('offline'); return; }
+  db.doc('meta/settings').onSnapshot((s) => { settings = s.exists ? { ...s.data() } : {}; if (!booted && boards.size) start(); });
+  db.collection('boards').onSnapshot((snap) => {
+    for (const ch of snap.docChanges()) { if (ch.type === 'removed') boards.delete(ch.doc.id); else boards.set(ch.doc.id, { ...ch.doc.data(), id: ch.doc.id }); }
+    if (!boards.size && !snap.metadata.fromCache) { showState('Noch keine Boards', 'Die Daten aus Trello werden gerade importiert. Lade die Seite in ein paar Minuten neu.'); return; }
+    if (!booted) start(); else render();
+  }, (e) => showState('Boards konnten nicht geladen werden', esc(e?.message || e?.code)));
+  db.collection('recurring').onSnapshot((snap) => { for (const ch of snap.docChanges()) { if (ch.type === 'removed') recurring.delete(ch.doc.id); else recurring.set(ch.doc.id, ch.doc.data()); } }, () => {});
+  claude.use('mcp').then((m) => { mcp = m; });
+  claude.use('permissions').then((p) => { perms = p; });
+}
+let startedAuto = false;
+function start() {
+  if (booted || !boards.size) return; booted = true;
+  if (!boards.has(activeId)) activeId = (settings.boardOrder || []).find((id) => boards.has(id)) || orderedBoards()[0][0];
+  subscribeCards();
+  // Automatik nach dem ersten Laden: wiederkehrende Karten, Capture (nur wenn Gmail schon erlaubt ist)
+  setTimeout(async () => {
+    if (startedAuto) return; startedAuto = true;
+    try { await runRecurring(); } catch (e) { console.error(e); }
+    const m = await claude.use('mcp'); mcp = m;
+    if (!m) return;
+    let st = 'prompt';
+    try { const p = await claude.use('permissions'); st = p ? await p.state('mcp:Gmail').catch(() => 'unavailable') : 'prompt'; } catch (e) {}
+    if (st === 'granted') fetchCaptures(false);
+    else if (st !== 'denied' && st !== 'unavailable') { $('#capN').hidden = false; $('#capN').textContent = '?'; $('#captureBtn').title = 'Tippen, um Capture-Mails abzuholen (fragt einmal nach Gmail-Zugriff)'; }
+  }, 1500);
+}
+$('#captureBtn').addEventListener('click', () => { $('#capN').hidden = true; });
+if (window.claude && claude.use) boot(); else showState('Nur auf claude.ai verfügbar', 'Diese Pinnwand speichert ihre Daten in claude.ai. Öffne sie über den Artifact-Link.');
+})();
+</script>
