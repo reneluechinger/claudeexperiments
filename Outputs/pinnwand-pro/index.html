@@ -13,6 +13,7 @@
   --overlay: rgba(10,25,25,.45);
   --bg-teal: #2b7a73; --bg-slate: #4a5d74; --bg-plum: #7a4a6b; --bg-moss: #5a7a3c; --bg-clay: #9a5b3c;
   --l-green: #3a9457; --l-yellow: #d9b425; --l-orange: #dc772b; --l-red: #cf4646; --l-purple: #8758c0; --l-blue: #3778d2;
+  --l-sky: #2596b0; --l-pink: #cc4f8a; --l-gray: #66727a;
   --chip-ink: #ffffff; --chip-ink-dark: #2a2306;
   --over: #c43d3d; --soon: #a86d12; --done: #2b844a;
   --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
@@ -110,6 +111,14 @@ a { color: var(--accent); }
 .badge.all { color: var(--done); font-weight: 600; }
 .bg-green { background: var(--l-green); } .bg-yellow { background: var(--l-yellow); } .bg-orange { background: var(--l-orange); }
 .bg-red { background: var(--l-red); } .bg-purple { background: var(--l-purple); } .bg-blue { background: var(--l-blue); }
+.bg-sky { background: var(--l-sky); } .bg-pink { background: var(--l-pink); } .bg-gray { background: var(--l-gray); }
+.card.full, .card.full:hover { background: var(--cc); color: #fff; }
+.card.full:hover { filter: brightness(1.07); }
+.card.full.yellow { color: var(--chip-ink-dark); }
+.card.full .card-title { font-weight: 700; letter-spacing: .02em; }
+.card.full .badges { color: inherit; opacity: .9; }
+.card.full .check { border-color: currentColor; }
+.card.full.is-done .card-title { color: inherit; opacity: .75; }
 
 .composer { padding: 6px 8px 10px; display: flex; flex-direction: column; gap: 8px; }
 .add-btn { border: 0; background: transparent; text-align: left; border-radius: 8px; padding: 8px 10px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
@@ -203,7 +212,7 @@ textarea.field { min-height: 140px; resize: vertical; line-height: 1.5; }
 .cover-pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
 .cover-pick button { height: 26px; border-radius: 5px; border: 2px solid transparent; }
 .cover-pick button.cur { border-color: var(--ink); }
-.cover-pick .none { background: transparent; border: 1px dashed var(--muted); font-size: 11px; color: var(--muted); grid-column: span 2; }
+.cover-pick .none { background: transparent; border: 1px dashed var(--muted); font-size: 11px; color: var(--muted); grid-column: span 3; }
 .close-x { position: absolute; top: 10px; right: 10px; background: var(--soft); z-index: 2; }
 
 .panel { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
@@ -271,7 +280,7 @@ const uid = (p = '') => p + Date.now().toString(36) + Math.random().toString(36)
 const nowIso = () => new Date().toISOString();
 const pad = (n) => String(n).padStart(2, '0');
 const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-const COLORS = ['green', 'yellow', 'orange', 'red', 'purple', 'blue'];
+const COLORS = ['green', 'yellow', 'orange', 'red', 'purple', 'blue', 'sky', 'pink', 'gray'];
 const BGS = ['teal', 'slate', 'plum', 'moss', 'clay'];
 const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 const pref = { get(k, d) { try { return localStorage.getItem('pw-' + k) ?? d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('pw-' + k, v); } catch (e) {} } };
@@ -548,8 +557,9 @@ function cardHTML(id, c, b) {
     c.source === 'recurring' ? `<span class="badge" title="Wiederkehrend">${ICON.repeat}</span>` : '',
     c.source === 'capture' ? `<span class="badge" title="Aus Capture-Mail">${ICON.mail}</span>` : '',
   ].join('');
-  return `<article class="card${c.done ? ' is-done' : ''}" data-card="${id}" tabindex="0"${matches(c) ? '' : ' hidden'}>
-    ${c.cover ? `<div class="cover bg-${c.cover}"></div>` : ''}
+  const full = c.cover && c.coverStyle === 'full';
+  return `<article class="card${c.done ? ' is-done' : ''}${full ? ' full ' + c.cover : ''}" data-card="${id}" tabindex="0"${full ? ` style="--cc: var(--l-${c.cover})"` : ''}${matches(c) ? '' : ' hidden'}>
+    ${c.cover && !full ? `<div class="cover bg-${c.cover}"></div>` : ''}
     ${chips ? `<div class="chips">${chips}</div>` : ''}
     <div class="card-row"><button class="check${c.done ? ' on' : ''}" data-act="toggle-done" aria-label="${c.done ? 'Als offen markieren' : 'Als erledigt markieren'}" aria-pressed="${!!c.done}">${ICON.tick}</button><div class="card-title">${esc(c.title)}</div></div>
     ${badges.trim() ? `<div class="badges">${badges}</div>` : ''}
@@ -793,8 +803,9 @@ function renderCard(focusSel) {
         </section>
       </div>
       <aside class="dlg-side">
-        <h3 class="sec-h">Titelfarbe</h3>
+        <h3 class="sec-h">Farbe</h3>
         <div class="cover-pick">${COLORS.map((col) => `<button class="bg-${col}${c.cover === col ? ' cur' : ''}" data-c="cover:${col}" aria-label="Titelfarbe ${col}"></button>`).join('')}<button class="none${!c.cover ? ' cur' : ''}" data-c="cover:" aria-label="Keine Titelfarbe">keine</button></div>
+        <label class="check-inline hint" style="margin-top:4px"><input type="checkbox" id="cFull" ${c.coverStyle === 'full' ? 'checked' : ''} ${c.cover ? '' : 'disabled'}> Ganze Karte einfärben</label>
         <h3 class="sec-h" style="margin-top:12px">Aktionen</h3>
         <button class="side-btn" data-c="top">↑ An den Listenanfang</button>
         <button class="side-btn" data-c="dup">${ICON.copy} Duplizieren</button>
@@ -831,7 +842,8 @@ dlgBody.addEventListener('change', (e) => {
     const [cl, it] = t.dataset.ck.split('|');
     writeCard(id, { checklists: mutateChecklists(c, (cls) => { const x = cls.find((q) => q.id === cl)?.items.find((q) => q.id === it); if (x) x.done = t.checked; }) });
     renderCard(); render();
-  } else if (t.id === 'cList') { applyCard(id, { list: t.value, pos: topPos(t.value) }); renderCard(); }
+  } else if (t.id === 'cFull') { writeCard(id, { coverStyle: t.checked ? 'full' : '' }); renderCard(); render(); }
+  else if (t.id === 'cList') { applyCard(id, { list: t.value, pos: topPos(t.value) }); renderCard(); }
   else if (t.id === 'cBoard' && t.value) {
     const nb = boards.get(t.value); const target = nb.lists[0]?.id;
     flushText(); writeCard(id, { board: t.value, list: target, pos: -Date.now(), labels: (c.labels || []).filter((l) => (nb.labels || []).some((x) => x.id === l)) });
