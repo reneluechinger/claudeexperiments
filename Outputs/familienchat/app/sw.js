@@ -1,6 +1,6 @@
 // Service Worker: macht die App installierbar, startet schneller und zeigt Push-Benachrichtigungen.
 // Bei jeder Änderung an der App die Versionsnummer erhöhen, damit alle Geräte das Update holen.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'familienchat-' + VERSION;
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'crypto.js', 'config.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
@@ -37,7 +37,7 @@ self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data?.json() ?? {}; } catch { data = { body: event.data?.text() }; }
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Familienchat', {
+    self.registration.showNotification(data.title || 'BRÄssenger', {
       body: data.body || 'Neue Nachricht',
       icon: 'icons/icon-192.png',
       badge: 'icons/badge-96.png',

@@ -419,7 +419,7 @@ function wireUi() {
     await busy($('button[type=submit]', f), async () => {
       const backup = await E2E.exportBackup(state.identity, f.pw1.value);
       const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
-      const name = `${CONFIG.APP_NAME}-Schluessel-${state.me.display_name}.json`.replace(/[^\w.-]+/g, '_');
+      const name = `${CONFIG.APP_NAME}-Schluessel-${state.me.display_name}.json`.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w.-]+/g, '_');
       const file = new File([blob], name, { type: 'application/json' });
       if (isIOS && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file] }).catch(() => {});

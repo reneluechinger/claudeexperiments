@@ -1,4 +1,4 @@
-# Familienchat einrichten
+# BRÄssenger einrichten
 
 Diese Anleitung führt dich in etwa **45 Minuten** von null zur fertigen App auf deinem Handy. Du brauchst kein Vorwissen. Alles ist kostenlos.
 
@@ -87,10 +87,10 @@ Warum? Der kostenlose E-Mail-Versand von Supabase schickt nur an Mitglieder dein
 ```js
 SUPABASE_URL: 'https://abcdefghijkl.supabase.co',
 SUPABASE_KEY: 'sb_publishable_xxxxxxxx',
-APP_NAME: 'Familienchat',
+APP_NAME: 'BRÄssenger',
 ```
 
-Bei `APP_NAME` kannst du einen eigenen Namen wählen, z. B. `'Chat Lüchinger'`.
+`APP_NAME` ist schon auf **BRÄssenger** gesetzt. Du kannst ihn jederzeit ändern.
 
 > ⚠️ Trage **nie** den «secret» oder «service_role» Key ein. Der gehört nur auf den Server.
 

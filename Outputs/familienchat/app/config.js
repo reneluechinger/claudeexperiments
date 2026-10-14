@@ -10,5 +10,5 @@ export const CONFIG = {
   SUPABASE_KEY: 'DEIN-PUBLISHABLE-KEY',
 
   // Name, der in der App und in Benachrichtigungen erscheint
-  APP_NAME: 'Familienchat',
+  APP_NAME: 'BRÄssenger',
 };

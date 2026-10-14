@@ -1,4 +1,4 @@
-# Familienchat
+# BRÄssenger
 
 Privater Chat für 2 Personen oder eine Familie. Läuft als Web-App (PWA) auf iPhone und Android, wird über den Browser auf den Home-Bildschirm gelegt. Kein App Store nötig.
 
@@ -14,7 +14,7 @@ Privater Chat für 2 Personen oder eine Familie. Läuft als Web-App (PWA) auf iP
 - Zugang nur mit Einladungscode (einmalig, 7 Tage gültig), Admins können einladen
 - Ende-zu-Ende-Verschlüsselung für Texte, Bilder und Audio
 - Schlüssel-Sicherung mit Passwort für Gerätewechsel
-- Heller und dunkler Modus
+- Heller und dunkler Modus im Neon-Stil des Logos (Cyan, Violett, Magenta)
 
 ## Aufbau
 
