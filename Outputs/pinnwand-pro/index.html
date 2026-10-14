@@ -143,6 +143,8 @@ a { color: var(--accent); }
 .placeholder { border-radius: var(--r); background: rgba(0,0,0,.12); flex: none; }
 .list-ph { width: 280px; flex: 0 0 280px; border-radius: 12px; background: rgba(0,0,0,.18); }
 body.is-dragging, body.is-dragging * { cursor: grabbing !important; }
+body.is-panning, body.is-panning * { cursor: grabbing !important; user-select: none !important; }
+.board { cursor: grab; } .composer { cursor: auto; } .card { cursor: pointer; }
 
 .state { margin: auto; max-width: 34rem; text-align: center; color: #fff; padding: 40px 16px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
 .state h2 { font: 700 22px/1.2 var(--f-display); margin: 0; }
@@ -954,6 +956,23 @@ function finishDrag(commit) {
   d.ph.remove(); d.el.classList.remove('src'); renderQueued = false; render();
   suppressClick = true; setTimeout(() => { suppressClick = false; }, 0);
 }
+
+// Mit gedrückter Maustaste auf freier Fläche seitwärts scrollen
+let pan = null;
+boardEl.addEventListener('pointerdown', (e) => {
+  if (e.pointerType !== 'mouse' || e.button !== 0 || drag) return;
+  if (e.target.closest('.card, .list-head, button, input, textarea, select, a, .composer, .state')) return;
+  pan = { x: e.clientX, left: boardEl.scrollLeft, moved: false, pid: e.pointerId };
+});
+window.addEventListener('pointermove', (e) => {
+  if (!pan || e.pointerId !== pan.pid) return;
+  const dx = e.clientX - pan.x;
+  if (!pan.moved && Math.abs(dx) < 4) return;
+  if (!pan.moved) { pan.moved = true; document.body.classList.add('is-panning'); window.getSelection()?.removeAllRanges(); }
+  boardEl.scrollLeft = pan.left - dx; e.preventDefault();
+});
+const endPan = (e) => { if (!pan || e.pointerId !== pan.pid) return; if (pan.moved) { suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } pan = null; document.body.classList.remove('is-panning'); };
+window.addEventListener('pointerup', endPan); window.addEventListener('pointercancel', endPan);
 
 // ---------- Panels ----------
 const panelDlg = $('#panelDlg'), panelBody = $('#panelBody');
