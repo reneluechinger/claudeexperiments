@@ -1,0 +1,387 @@
+<title>Hyrule-Sammelbuch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<style>
+/* Layout: eine Handy-Spalte wie ein N64-Pausenmenü; Karte oben, Liste des gewählten Gebiets darunter */
+:root {
+  color-scheme: dark;
+  --bg: #14110F;
+  --panel: #231E1A;
+  --panel-2: #2E2721;
+  --gold: #E3BE4A;
+  --frame: #C9A227;
+  --text: #F2E8CF;
+  --muted: #B8AE95;
+  --line: #5C5245;
+  --heart: #F07A6E;
+  --ok: #8FD16A;
+  --font-pixel: 'Press Start 2P', 'Courier New', monospace;
+  --font-body: 'VT323', 'Courier New', monospace;
+}
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--font-body); font-size: 20px; line-height: 1.15;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 32px;
+}
+.wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px }
+.box { border: 3px solid var(--frame); background: var(--panel); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0 }
+h1, h2 { font-family: var(--font-pixel); font-weight: 400; margin: 0; color: var(--gold); text-wrap: balance }
+h1 { font-size: 13px; line-height: 1.6 }
+h2 { font-size: 11px; line-height: 1.6 }
+.stats { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; font-size: 23px; font-variant-numeric: tabular-nums }
+.stats b { font-weight: 400; color: var(--gold) }
+.stats .h b { color: var(--heart) }
+.reward { font-size: 19px; color: var(--muted); border-top: 2px dashed var(--line); padding-top: 6px }
+.reward b { font-weight: 400; color: var(--text) }
+button, select, textarea { font: inherit; color: inherit }
+.btn {
+  min-height: 44px; padding: 4px 10px; border: 3px solid var(--line); background: var(--panel);
+  color: var(--text); font-family: var(--font-body); font-size: 20px; cursor: pointer; text-transform: uppercase;
+}
+.btn[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--bg) }
+.btn:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible { outline: 3px solid var(--text); outline-offset: 2px }
+.row { display: grid; gap: 6px }
+.row.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+.row.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)) }
+.chips { display: flex; flex-wrap: wrap; gap: 6px }
+.chips .btn { flex: 1 1 auto }
+.map { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 2px; cursor: pointer; touch-action: manipulation }
+.cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 17px; line-height: 1; color: var(--bg); font-variant-numeric: tabular-nums }
+.cell.sel { outline: 2px solid var(--text); outline-offset: -2px }
+.cell.n { background: var(--gold) !important; font-weight: 700 }
+.cell.n0 { background: var(--ok) !important }
+.mapfoot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap }
+.mapfoot label { color: var(--muted); font-size: 19px }
+select { flex: 1; min-height: 44px; background: var(--panel-2); border: 3px solid var(--line); padding: 0 8px; font-size: 20px; min-width: 0 }
+.legend { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 17px; color: var(--muted) }
+.sw { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; margin-right: 4px }
+.dun { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px }
+.dun .btn { text-align: left; display: flex; flex-direction: column; gap: 4px; text-transform: none }
+.bar { display: block; height: 6px; background: var(--line) }
+.bar i { display: block; height: 6px; background: var(--gold) }
+.dun .btn[aria-pressed="true"] .bar { background: rgba(20,17,15,.3) }
+.dun .btn[aria-pressed="true"] .bar i { background: var(--bg) }
+details summary { cursor: pointer; font-size: 20px; min-height: 44px; display: flex; align-items: center; color: var(--muted) }
+.listhead { display: flex; justify-content: space-between; align-items: center; gap: 8px }
+.listhead span { font-size: 21px; font-variant-numeric: tabular-nums }
+.entry { display: flex; flex-direction: column; gap: 4px; padding: 8px 0; border-top: 2px dashed var(--line) }
+.entry label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer }
+.entry input[type=checkbox] { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--gold); flex: none }
+.entry .t { font-size: 22px; line-height: 1.05 }
+.entry.done .t { color: var(--muted); text-decoration: line-through }
+.entry .d { font-size: 19px; color: var(--muted) }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; padding-left: 32px }
+.tag { font-size: 16px; border: 2px solid var(--line); padding: 0 6px; color: var(--text) }
+.tag.gs { border-color: var(--gold); color: var(--gold) }
+.tag.hz { border-color: var(--heart); color: var(--heart) }
+.tag.q { border-style: dashed; color: var(--muted) }
+.tag.x { border-color: var(--heart); color: var(--heart) }
+.link { background: none; border: 0; color: var(--gold); font-size: 18px; padding: 4px 0; min-height: 44px; cursor: pointer; text-decoration: underline; text-align: left; text-transform: none }
+.note { padding-left: 32px; display: flex; flex-direction: column; gap: 6px }
+textarea { width: 100%; min-height: 64px; background: var(--panel-2); border: 3px solid var(--line); padding: 6px; font-size: 19px; resize: vertical }
+.empty { color: var(--muted); font-size: 19px; padding: 8px 0 }
+.foot { font-size: 17px; color: var(--muted); display: flex; flex-direction: column; gap: 4px }
+.foot a { color: var(--gold) }
+.status { display: inline-flex; gap: 6px; align-items: center }
+.dot { width: 10px; height: 10px; background: var(--muted); display: inline-block }
+.dot.on { background: var(--ok) }
+.confirm { display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+
+<div class="wrap">
+  <header class="box">
+    <h1>HYRULE-SAMMELBUCH</h1>
+    <div class="stats">
+      <span>GOLD-SKULLTULA <b id="cGs">000</b>/100</span>
+      <span class="h">HERZ <b id="cHz">00</b>/36</span>
+    </div>
+    <div class="reward" id="reward"></div>
+  </header>
+
+  <div class="row c2" role="group" aria-label="Ansicht">
+    <button class="btn" id="tabWelt" aria-pressed="true" type="button">Oberwelt</button>
+    <button class="btn" id="tabDun" aria-pressed="false" type="button">Dungeons</button>
+  </div>
+
+  <section class="box" id="weltBox" aria-label="Karte der Oberwelt">
+    <div class="map" id="map" aria-hidden="true"></div>
+    <div class="legend">
+      <span><span class="sw" style="background: var(--gold)"></span>Zahl = offen im Gebiet</span>
+      <span><span class="sw" style="background: var(--ok)"></span>Gebiet komplett</span>
+      <span>Feld antippen wählt das Gebiet</span>
+    </div>
+    <div class="mapfoot">
+      <label for="gebietSel">Gebiet</label>
+      <select id="gebietSel"></select>
+    </div>
+  </section>
+
+  <section class="box" id="dunBox" hidden aria-label="Dungeons">
+    <div class="dun" id="dun"></div>
+  </section>
+
+  <div class="row c3" role="group" aria-label="Typ">
+    <button class="btn" data-typ="alle" type="button">Alle</button>
+    <button class="btn" data-typ="skulltula" type="button">Skulltula</button>
+    <button class="btn" data-typ="herzteil" type="button">Herz</button>
+  </div>
+  <div class="chips" role="group" aria-label="Filter">
+    <button class="btn" data-f="kind" type="button">Kind</button>
+    <button class="btn" data-f="erwachsen" type="button">Erwachsen</button>
+    <button class="btn" data-f="nacht" type="button">Nacht</button>
+    <button class="btn" data-f="offen" type="button">Offen</button>
+    <button class="btn" data-f="holbar" type="button">Holbar</button>
+  </div>
+
+  <details class="box" id="invBox">
+    <summary>MEIN INVENTAR (für „Holbar“)</summary>
+    <div class="chips" id="inv"></div>
+  </details>
+
+  <section class="box" aria-live="polite">
+    <div class="listhead"><h2 id="listTitle">KOKIRI-WALD</h2><span id="listCount"></span></div>
+    <div id="list"></div>
+  </section>
+
+  <footer class="foot">
+    <span class="status"><span class="dot" id="syncDot"></span><span id="syncText">Fortschritt wird geladen …</span></span>
+    <span>Alle Orte stammen aus dem N64-Original (Quelle: <a href="https://github.com/OoTRandomizer/OoT-Randomizer" target="_blank" rel="noopener">OoT Randomizer</a>, Ortsliste und Spiellogik). „?“ heisst: fürs Remake noch nicht bestätigt. Belohnungsstufen im Skulltula-Haus ebenfalls aus dieser Quelle. „Holbar“ prüft nur Items, nicht Alter oder Tageszeit; Fanghaken zählt auch als Enterhaken.</span>
+    <div class="confirm" id="resetBox">
+      <button class="link" id="resetAsk" type="button">Fortschritt zurücksetzen</button>
+    </div>
+  </footer>
+</div>
+
+<script>
+const ORTE = [{"id":"gs-kf-1","typ":"skulltula","gebiet":"Kokiri-Wald","titel":"Haus der Alleswisser","tipp":"Als Kind nachts am Haus der Alleswisser mit einem Angriff holen.","alter":"kind","nacht":true,"items":[]},{"id":"gs-kf-2","typ":"skulltula","gebiet":"Kokiri-Wald","titel":"Bohnenbeet","tipp":"Am Bohnenbeet einen Käfer pflanzen und die Skulltula angreifen.","alter":"kind","nacht":false,"items":["Käfer (Flasche)"]},{"id":"gs-kf-3","typ":"skulltula","gebiet":"Kokiri-Wald","titel":"Haus der Zwillinge","tipp":"Als Erwachsener nachts am Haus der Zwillinge, mit dem Enterhaken holen.","alter":"erwachsen","nacht":true,"items":["Enterhaken"]},{"id":"gs-lw-1","typ":"skulltula","gebiet":"Verlorene Wälder","titel":"Bohnenbeet an der Brücke","tipp":"Am Bohnenbeet bei der Brücke einen Käfer pflanzen und angreifen.","alter":"kind","nacht":false,"items":["Käfer (Flasche)"]},{"id":"gs-lw-2","typ":"skulltula","gebiet":"Verlorene Wälder","titel":"Bohnenbeet am Theater","tipp":"Am Bohnenbeet nahe dem Theater einen Käfer pflanzen und angreifen.","alter":"kind","nacht":false,"items":["Käfer (Flasche)"]},{"id":"gs-lw-3","typ":"skulltula","gebiet":"Verlorene Wälder","titel":"Über dem Theater","tipp":"Als Erwachsener nachts über dem Theater, per Zauberbohne erreichen.","alter":"erwachsen","nacht":true,"items":["Zauberbohne"]},{"id":"gs-sfm-1","typ":"skulltula","gebiet":"Heilige Lichtung","titel":"Skulltula der Lichtung","tipp":"Nachts auf der Heiligen Lichtung mit dem Enterhaken holen.","alter":"erwachsen","nacht":true,"items":["Enterhaken"]},{"id":"gs-hf-1","typ":"skulltula","gebiet":"Hyrule-Steppe","titel":"Kuh-Grotte","tipp":"In der Kuh-Grotte Feuer nutzen, dann mit Bumerang oder Enterhaken holen.","alter":"beide","nacht":false,"items":["Dins Feuerinferno oder Feuerpfeile","Bumerang oder Enterhaken"]},{"id":"gs-hf-2","typ":"skulltula","gebiet":"Hyrule-Steppe","titel":"Grotte bei Kakariko","tipp":"In der Grotte nahe Kakariko mit Bumerang oder Enterhaken holen.","alter":"beide","nacht":false,"items":["Bumerang oder Enterhaken"]},{"id":"gs-mk-1","typ":"skulltula","gebiet":"Hyrule-Stadt","titel":"Wachhaus","tipp":"Als Kind im Wachhaus eine Kiste zerbrechen.","alter":"kind","nacht":false,"items":[]},{"id":"gs-mk-2","typ":"skulltula","gebiet":"Hyrule-Stadt","titel":"Baum am Schloss","tipp":"Als Kind am Baum auf dem Schlossgelände angreifen und dagegen rennen.","alter":"kind","nacht":false,"items":[]},{"id":"gs-mk-3","typ":"skulltula","gebiet":"Hyrule-Stadt","titel":"Sturm-Grotte am Schloss","tipp":"Die Grotte beim Schloss sprengen, dann mit Bumerang oder Enterhaken holen.","alter":"beide","nacht":false,"items":["Bomben","Bumerang oder Enterhaken"]},{"id":"gs-llr-1","typ":"skulltula","gebiet":"Lon-Lon-Farm","titel":"Fenster des Farmhauses","tipp":"Nachts am Fenster des Hauses mit dem Bumerang holen.","alter":"kind","nacht":true,"items":["Bumerang"]},{"id":"gs-llr-2","typ":"skulltula","gebiet":"Lon-Lon-Farm","titel":"Baum der Farm","tipp":"Als Kind am Baum der Farm dagegen rennen.","alter":"kind","nacht":false,"items":[]},{"id":"gs-llr-3","typ":"skulltula","gebiet":"Lon-Lon-Farm","titel":"Regenunterstand","tipp":"Als Kind nachts am Regenunterstand holen.","alter":"kind","nacht":true,"items":[]},{"id":"gs-llr-4","typ":"skulltula","gebiet":"Lon-Lon-Farm","titel":"Rückwand","tipp":"Nachts an der Rückwand mit dem Bumerang holen.","alter":"kind","nacht":true,"items":["Bumerang"]},{"id":"gs-kak-1","typ":"skulltula","gebiet":"Kakariko","titel":"Baum in Kakariko","tipp":"Als Kind nachts am Baum dagegen rennen.","alter":"kind","nacht":true,"items":[]},{"id":"gs-kak-2","typ":"skulltula","gebiet":"Kakariko","titel":"Beim Torwächter","tipp":"Als Kind nachts in der Nähe des Torwächters holen.","alter":"kind","nacht":true,"items":[]},{"id":"gs-kak-3","typ":"skulltula","gebiet":"Kakariko","titel":"Wachturm","tipp":"Als Kind nachts am Wachturm mit Schleuder oder Bomben holen.","alter":"kind","nacht":true,"items":["Feen-Schleuder oder Bomben"]},{"id":"gs-kak-4","typ":"skulltula","gebiet":"Kakariko","titel":"Skulltula-Haus","tipp":"Als Kind nachts am Skulltula-Haus holen.","alter":"kind","nacht":true,"items":[]},{"id":"gs-kak-5","typ":"skulltula","gebiet":"Kakariko","titel":"Haus im Bau","tipp":"Als Kind nachts am Haus im Bau holen.","alter":"kind","nacht":true,"items":[]},{"id":"gs-kak-6","typ":"skulltula","gebiet":"Kakariko","titel":"Über Impas Haus","tipp":"Als Erwachsener nachts über Impas Haus holen.","alter":"erwachsen","nacht":true,"items":[]},{"id":"gs-gy-1","typ":"skulltula","gebiet":"Friedhof","titel":"Bohnenbeet am Friedhof","tipp":"Am Bohnenbeet einen Käfer pflanzen und die Skulltula angreifen.","alter":"kind","nacht":false,"items":["Käfer (Flasche)"]},{"id":"gs-gy-2","typ":"skulltula","gebiet":"Friedhof","titel":"Friedhofsmauer","tipp":"Nachts an der Mauer mit dem Bumerang holen.","alter":"kind","nacht":true,"items":["Bumerang"]},{"id":"gs-dmt-1","typ":"skulltula","gebiet":"Todesberg","titel":"Todesberg bei Kakariko","tipp":"Nahe Kakariko sprengen und die Skulltula holen.","alter":"beide","nacht":false,"items":["Bomben"]},{"id":"gs-dmt-2","typ":"skulltula","gebiet":"Todesberg","titel":"Bohnenbeet am Todesberg","tipp":"Am Bohnenbeet einen Käfer pflanzen, dazu Bomben nutzen.","alter":"kind","nacht":false,"items":["Käfer (Flasche)","Bomben"]},{"id":"gs-dmt-3","typ":"skulltula","gebiet":"Todesberg","titel":"Über Dodongos Höhle","tipp":"Als Erwachsener nachts über Dodongos Höhle mit dem Hammer holen.","alter":"erwachsen","nacht":true,"items":["Hammer"]},{"id":"gs-dmt-4","typ":"skulltula","gebiet":"Todesberg","titel":"Pfad der Steinschläge","tipp":"Als Erwachsener nachts auf dem Pfad der Steinschläge mit dem Hammer holen.","alter":"erwachsen","nacht":true,"items":["Hammer"]},{"id":"gs-gc-1","typ":"skulltula","gebiet":"Goronia","titel":"Mittelplattform","tipp":"Als Erwachsener auf der Mittelplattform in Goronia holen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"gs-gc-2","typ":"skulltula","gebiet":"Goronia","titel":"Felsbrocken-Labyrinth","tipp":"Als Kind im Felsbrocken-Labyrinth mit Bomben holen.","alter":"kind","nacht":false,"items":["Bomben"]},{"id":"gs-dmc-1","typ":"skulltula","gebiet":"Todeskrater","titel":"Kiste im Krater","tipp":"Als Kind die erhitzte Kiste zerbrechen und die Skulltula angreifen.","alter":"kind","nacht":false,"items":[]},{"id":"gs-dmc-2","typ":"skulltula","gebiet":"Todeskrater","titel":"Bohnenbeet im Krater","tipp":"Am Bohnenbeet einen Käfer pflanzen und die Skulltula angreifen.","alter":"kind","nacht":false,"items":["Käfer (Flasche)"]},{"id":"gs-zr-1","typ":"skulltula","gebiet":"Zoras Fluss","titel":"Baum am Fluss","tipp":"Als Kind am Baum angreifen und dagegen rennen.","alter":"kind","nacht":false,"items":[]},{"id":"gs-zr-2","typ":"skulltula","gebiet":"Zoras Fluss","titel":"Leiter","tipp":"Als Kind nachts an der Leiter die Skulltula angreifen.","alter":"kind","nacht":true,"items":[]},{"id":"gs-zr-3","typ":"skulltula","gebiet":"Zoras Fluss","titel":"Bei den erhöhten Grotten","tipp":"Nachts bei den erhöhten Grotten mit dem Enterhaken holen.","alter":"erwachsen","nacht":true,"items":["Enterhaken"]},{"id":"gs-zr-4","typ":"skulltula","gebiet":"Zoras Fluss","titel":"Über der Brücke","tipp":"Nachts über der Brücke mit dem Enterhaken holen.","alter":"erwachsen","nacht":true,"items":["Enterhaken"]},{"id":"gs-zd-1","typ":"skulltula","gebiet":"Zoras Reich","titel":"Gefrorener Wasserfall","tipp":"Als Erwachsener nachts am gefrorenen Wasserfall mit dem Enterhaken holen.","alter":"erwachsen","nacht":true,"items":["Enterhaken"]},{"id":"gs-zf-1","typ":"skulltula","gebiet":"Zoras Quelle","titel":"Über dem Baumstamm","tipp":"Nachts über dem Baumstamm mit dem Bumerang holen.","alter":"kind","nacht":true,"items":["Bumerang"]},{"id":"gs-zf-2","typ":"skulltula","gebiet":"Zoras Quelle","titel":"Baum an der Quelle","tipp":"Als Kind am Baum dagegen rennen.","alter":"kind","nacht":false,"items":[]},{"id":"gs-zf-3","typ":"skulltula","gebiet":"Zoras Quelle","titel":"Versteckte Höhle","tipp":"Nachts in der versteckten Höhle mit dem Enterhaken holen.","alter":"erwachsen","nacht":true,"items":["Enterhaken"]},{"id":"gs-lh-1","typ":"skulltula","gebiet":"Hylia-See","titel":"Bohnenbeet am Hylia-See","tipp":"Am Bohnenbeet einen Käfer pflanzen und die Skulltula angreifen.","alter":"kind","nacht":false,"items":["Käfer (Flasche)"]},{"id":"gs-lh-2","typ":"skulltula","gebiet":"Hylia-See","titel":"Laborwand","tipp":"Als Kind nachts an der Laborwand mit dem Bumerang holen.","alter":"kind","nacht":true,"items":["Bumerang"]},{"id":"gs-lh-3","typ":"skulltula","gebiet":"Hylia-See","titel":"Kleine Insel","tipp":"Als Kind nachts auf der kleinen Insel die Skulltula angreifen.","alter":"kind","nacht":true,"items":[]},{"id":"gs-lh-4","typ":"skulltula","gebiet":"Hylia-See","titel":"Laborkiste","tipp":"Mit Eisenstiefeln und Enterhaken die Kiste im Labor holen.","alter":"erwachsen","nacht":false,"items":["Eisenstiefel","Enterhaken"]},{"id":"gs-lh-5","typ":"skulltula","gebiet":"Hylia-See","titel":"Baum am Hylia-See","tipp":"Nachts am Baum mit dem Fanghaken holen.","alter":"erwachsen","nacht":true,"items":["Fanghaken"]},{"id":"gs-gv-1","typ":"skulltula","gebiet":"Gerudotal","titel":"Kleine Brücke","tipp":"Nachts an der kleinen Brücke mit dem Bumerang holen.","alter":"kind","nacht":true,"items":["Bumerang"]},{"id":"gs-gv-2","typ":"skulltula","gebiet":"Gerudotal","titel":"Bohnenbeet im Gerudotal","tipp":"Am Bohnenbeet einen Käfer pflanzen und die Skulltula angreifen.","alter":"kind","nacht":false,"items":["Käfer (Flasche)"]},{"id":"gs-gv-3","typ":"skulltula","gebiet":"Gerudotal","titel":"Hinter dem Zelt","tipp":"Nachts hinter dem Zelt mit dem Enterhaken holen.","alter":"erwachsen","nacht":true,"items":["Enterhaken"]},{"id":"gs-gv-4","typ":"skulltula","gebiet":"Gerudotal","titel":"Säule","tipp":"Nachts an der Säule mit dem Enterhaken holen.","alter":"erwachsen","nacht":true,"items":["Enterhaken"]},{"id":"gs-gf-1","typ":"skulltula","gebiet":"Gerudo-Festung","titel":"Oberstes Stockwerk","tipp":"Als Erwachsener nachts im obersten Stockwerk holen.","alter":"erwachsen","nacht":true,"items":[]},{"id":"gs-gf-2","typ":"skulltula","gebiet":"Gerudo-Festung","titel":"Schiessstand","tipp":"Nachts am Schiessstand mit Enterhaken und Gerudo-Pass holen.","alter":"erwachsen","nacht":true,"items":["Enterhaken","Gerudo-Pass"]},{"id":"gs-wl-1","typ":"skulltula","gebiet":"Gespensterwüste","titel":"Gespensterwüste","tipp":"In der Gespensterwüste mit Bumerang oder Enterhaken holen.","alter":"erwachsen","nacht":false,"items":["Bumerang oder Enterhaken"]},{"id":"gs-co-1","typ":"skulltula","gebiet":"Wüstenkoloss","titel":"Bohnenbeet im Wüstenkoloss","tipp":"Am Bohnenbeet einen Käfer pflanzen und die Skulltula angreifen.","alter":"kind","nacht":false,"items":["Käfer (Flasche)"]},{"id":"gs-co-2","typ":"skulltula","gebiet":"Wüstenkoloss","titel":"Baum im Wüstenkoloss","tipp":"Nachts am Baum mit dem Enterhaken holen.","alter":"erwachsen","nacht":true,"items":["Enterhaken"]},{"id":"gs-co-3","typ":"skulltula","gebiet":"Wüstenkoloss","titel":"Hügel","tipp":"Als Erwachsener nachts am Hügel, per Zauberbohne erreichen.","alter":"erwachsen","nacht":true,"items":["Zauberbohne"]},{"id":"gs-ogc-1","typ":"skulltula","gebiet":"Hyrule-Stadt","titel":"Vor Ganons Schloss","tipp":"Als Erwachsener vor Ganons Schloss holen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"gs-dt-1","typ":"skulltula","gebiet":"Deku-Baum","titel":"Kompassraum","tipp":"Im Kompassraum die Skulltula erledigen.","alter":"kind","nacht":false,"items":[]},{"id":"gs-dt-2","typ":"skulltula","gebiet":"Deku-Baum","titel":"Ranken im Untergeschoss","tipp":"Im Untergeschoss an den Ranken mit einem Projektil holen.","alter":"kind","nacht":false,"items":["Feen-Schleuder"]},{"id":"gs-dt-3","typ":"skulltula","gebiet":"Deku-Baum","titel":"Tor im Untergeschoss","tipp":"Im Untergeschoss beim Tor die Skulltula erledigen.","alter":"kind","nacht":false,"items":[]},{"id":"gs-dt-4","typ":"skulltula","gebiet":"Deku-Baum","titel":"Hinterraum im Untergeschoss","tipp":"Im Hinterraum des Untergeschosses Feuer und Bomben nutzen, dann holen.","alter":"kind","nacht":false,"items":["Dins Feuerinferno oder Feuerpfeile","Bomben","Bumerang oder Enterhaken"]},{"id":"gs-dc-1","typ":"skulltula","gebiet":"Dodongos Höhle","titel":"Nebenraum bei den Lizalfos","tipp":"Im Nebenraum nahe dem unteren Lizalfos die Skulltula holen.","alter":"kind","nacht":false,"items":[]},{"id":"gs-dc-2","typ":"skulltula","gebiet":"Dodongos Höhle","titel":"Vogelscheuche","tipp":"Bei der Vogelscheuche mit dem Vogelscheuchen-Lied oder Fanghaken holen.","alter":"erwachsen","nacht":false,"items":["Vogelscheuchen-Lied oder Fanghaken"]},{"id":"gs-dc-3","typ":"skulltula","gebiet":"Dodongos Höhle","titel":"Nische über der Treppe","tipp":"In der Nische über der Treppe mit Bumerang oder Enterhaken holen.","alter":"kind","nacht":false,"items":["Bumerang oder Enterhaken"]},{"id":"gs-dc-4","typ":"skulltula","gebiet":"Dodongos Höhle","titel":"Ranken über der Treppe","tipp":"Im Treppenraum an den Ranken über der Treppe holen.","alter":"kind","nacht":false,"items":[]},{"id":"gs-dc-5","typ":"skulltula","gebiet":"Dodongos Höhle","titel":"Hinterzimmer","tipp":"Im Hinterzimmer am Eingang sprengen und die Skulltula holen.","alter":"kind","nacht":false,"items":["Bomben"]},{"id":"gs-jj-1","typ":"skulltula","gebiet":"Jabu-Jabus Bauch","titel":"Wasserschalter-Raum","tipp":"Im Wasserschalter-Raum die Skulltula holen.","alter":"kind","nacht":false,"items":[]},{"id":"gs-jj-2","typ":"skulltula","gebiet":"Jabu-Jabus Bauch","titel":"Eingangshalle, Keller unten","tipp":"Im unteren Keller der Eingangshalle mit Bumerang oder Enterhaken holen.","alter":"kind","nacht":false,"items":["Bumerang oder Enterhaken"]},{"id":"gs-jj-3","typ":"skulltula","gebiet":"Jabu-Jabus Bauch","titel":"Eingangshalle, Keller oben","tipp":"Im oberen Keller der Eingangshalle mit Bumerang oder Enterhaken holen.","alter":"kind","nacht":false,"items":["Bumerang oder Enterhaken"]},{"id":"gs-jj-4","typ":"skulltula","gebiet":"Jabu-Jabus Bauch","titel":"Vor dem Boss","tipp":"Vor dem Bossraum mit einem Projektil holen.","alter":"kind","nacht":false,"items":["Feen-Schleuder"]},{"id":"gs-bw-1","typ":"skulltula","gebiet":"Grund des Brunnens","titel":"Westlicher Innenraum","tipp":"Im westlichen Innenraum hinter den verschlossenen Türen mit dem Bumerang holen.","alter":"kind","nacht":false,"items":["Bumerang"]},{"id":"gs-bw-2","typ":"skulltula","gebiet":"Grund des Brunnens","titel":"Östlicher Innenraum","tipp":"Im östlichen Innenraum hinter den verschlossenen Türen mit dem Bumerang holen.","alter":"kind","nacht":false,"items":["Bumerang"]},{"id":"gs-bw-3","typ":"skulltula","gebiet":"Grund des Brunnens","titel":"Like-Like-Käfig","tipp":"Beim Like-Like-Käfig hinter den verschlossenen Türen mit dem Bumerang holen.","alter":"kind","nacht":false,"items":["Bumerang"]},{"id":"gs-ft-1","typ":"skulltula","gebiet":"Waldtempel","titel":"Erster Raum","tipp":"Im ersten Raum die Skulltula erwischen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"gs-ft-2","typ":"skulltula","gebiet":"Waldtempel","titel":"Eingangshalle","tipp":"In der Eingangshalle mit Bumerang oder Enterhaken holen.","alter":"erwachsen","nacht":false,"items":["Bumerang oder Enterhaken"]},{"id":"gs-ft-3","typ":"skulltula","gebiet":"Waldtempel","titel":"Erhöhte Insel im Hof","tipp":"Auf der erhöhten Insel im Hof mit dem Enterhaken holen.","alter":"erwachsen","nacht":false,"items":["Enterhaken"]},{"id":"gs-ft-4","typ":"skulltula","gebiet":"Waldtempel","titel":"Ebene Insel im Hof","tipp":"Auf der ebenen Insel im Hof mit dem Fanghaken holen.","alter":"erwachsen","nacht":false,"items":["Fanghaken"]},{"id":"gs-ft-5","typ":"skulltula","gebiet":"Waldtempel","titel":"Keller","tipp":"Im Keller mit Bumerang oder Enterhaken holen.","alter":"erwachsen","nacht":false,"items":["Bumerang oder Enterhaken"]},{"id":"gs-fi-1","typ":"skulltula","gebiet":"Feuertempel","titel":"Boss-Schlüssel-Schleife","tipp":"Bei der Boss-Schlüssel-Schleife die Skulltula holen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"gs-fi-2","typ":"skulltula","gebiet":"Feuertempel","titel":"Raum der Hymne der Zeit","tipp":"Als Erwachsener im Raum der Hymne der Zeit die Hymne spielen.","alter":"erwachsen","nacht":false,"items":["Hymne der Zeit"]},{"id":"gs-fi-3","typ":"skulltula","gebiet":"Feuertempel","titel":"Felsbrocken-Labyrinth","tipp":"Im Felsbrocken-Labyrinth mit Bomben holen.","alter":"erwachsen","nacht":false,"items":["Bomben"]},{"id":"gs-fi-4","typ":"skulltula","gebiet":"Feuertempel","titel":"Vogelscheuchen-Aufstieg","tipp":"Beim Vogelscheuchen-Aufstieg das Vogelscheuchen-Lied spielen.","alter":"erwachsen","nacht":false,"items":["Vogelscheuchen-Lied"]},{"id":"gs-fi-5","typ":"skulltula","gebiet":"Feuertempel","titel":"Oben bei der Vogelscheuche","tipp":"Oben bei der Vogelscheuche das Vogelscheuchen-Lied spielen.","alter":"erwachsen","nacht":false,"items":["Vogelscheuchen-Lied"]},{"id":"gs-wt-1","typ":"skulltula","gebiet":"Wassertempel","titel":"Hinter dem Tor","tipp":"Im südlichen Untergeschoss hinter dem Tor die Skulltula holen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"gs-wt-2","typ":"skulltula","gebiet":"Wassertempel","titel":"Nähe Boss-Schlüssel-Truhe","tipp":"Im nördlichen Untergeschoss nahe der Truhe mit dem Boss-Schlüssel holen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"gs-wt-3","typ":"skulltula","gebiet":"Wassertempel","titel":"Zentrale Säule","tipp":"An der zentralen Säule bei gesenktem Wasser mit dem Fanghaken holen.","alter":"erwachsen","nacht":false,"items":["Fanghaken","Feen-Bogen"]},{"id":"gs-wt-4","typ":"skulltula","gebiet":"Wassertempel","titel":"Raum mit fallender Plattform","tipp":"Im Raum mit der fallenden Plattform mit dem Fanghaken holen.","alter":"erwachsen","nacht":false,"items":["Fanghaken"]},{"id":"gs-wt-5","typ":"skulltula","gebiet":"Wassertempel","titel":"Fluss","tipp":"Am Fluss mit Eisenstiefeln und Zora-Tunika holen.","alter":"erwachsen","nacht":false,"items":["Eisenstiefel","Zora-Tunika"]},{"id":"gs-st-1","typ":"skulltula","gebiet":"Schattentempel","titel":"Raum der unsichtbaren Klingen","tipp":"Im Raum der unsichtbaren Klingen die Skulltula holen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"gs-st-2","typ":"skulltula","gebiet":"Schattentempel","titel":"Raum mit fallenden Stacheln","tipp":"Im Raum mit den fallenden Stacheln mit dem Enterhaken holen.","alter":"erwachsen","nacht":false,"items":["Enterhaken"]},{"id":"gs-st-3","typ":"skulltula","gebiet":"Schattentempel","titel":"Einzelner Riesentopf","tipp":"Fünf Silberrubine sammeln, dann beim einzelnen Riesentopf holen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"gs-st-4","typ":"skulltula","gebiet":"Schattentempel","titel":"Nahe dem Schiff","tipp":"Beim Schiff mit dem Fanghaken holen.","alter":"erwachsen","nacht":false,"items":["Fanghaken"]},{"id":"gs-st-5","typ":"skulltula","gebiet":"Schattentempel","titel":"Dreifacher Riesentopf","tipp":"Beim dreifachen Riesentopf hinter dem Boot die Skulltula holen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"gs-sp-1","typ":"skulltula","gebiet":"Geistertempel","titel":"Metallzaun","tipp":"Beim Metallzaun mit dem Bumerang holen.","alter":"kind","nacht":false,"items":["Bumerang"]},{"id":"gs-sp-2","typ":"skulltula","gebiet":"Geistertempel","titel":"Raum mit Sonne am Boden","tipp":"Im Raum mit der Sonne am Boden die Skulltula holen.","alter":"beide","nacht":false,"items":[]},{"id":"gs-sp-3","typ":"skulltula","gebiet":"Geistertempel","titel":"Halle nach dem Sonnenblock-Raum","tipp":"In der Halle nach dem Sonnenblock-Raum mit Bumerang und Enterhaken holen.","alter":"beide","nacht":false,"items":["Bumerang","Enterhaken"]},{"id":"gs-sp-4","typ":"skulltula","gebiet":"Geistertempel","titel":"Eingangshalle","tipp":"In der Eingangshalle des Tempels die Skulltula holen.","alter":"beide","nacht":false,"items":[]},{"id":"gs-sp-5","typ":"skulltula","gebiet":"Geistertempel","titel":"Felsbrocken-Raum","tipp":"Im Felsbrocken-Raum die Hymne der Zeit spielen.","alter":"beide","nacht":false,"items":["Hymne der Zeit"]},{"id":"gs-ic-1","typ":"skulltula","gebiet":"Eishöhle","titel":"Raum der kreisenden Sense","tipp":"Im Raum der kreisenden Sense mit Bumerang oder Enterhaken holen.","alter":"erwachsen","nacht":false,"items":["Bumerang oder Enterhaken"]},{"id":"gs-ic-2","typ":"skulltula","gebiet":"Eishöhle","titel":"Herzteil-Raum","tipp":"Im Herzteil-Raum hinter den Eiswänden mit Bumerang oder Enterhaken holen.","alter":"erwachsen","nacht":false,"items":["Bumerang oder Enterhaken"]},{"id":"gs-ic-3","typ":"skulltula","gebiet":"Eishöhle","titel":"Raum mit Schiebeblock","tipp":"Im Raum mit dem Schiebeblock mit Bumerang oder Enterhaken holen.","alter":"erwachsen","nacht":false,"items":["Bumerang oder Enterhaken"]},{"id":"hz-lw-1","typ":"herzteil","gebiet":"Verlorene Wälder","titel":"Okarina-Gedächtnisspiel","tipp":"Als Kind das Gedächtnisspiel mit der Okarina bestehen.","alter":"kind","nacht":false,"items":["Okarina"]},{"id":"hz-lw-2","typ":"herzteil","gebiet":"Verlorene Wälder","titel":"Horror-Kid","tipp":"Dem Horror-Kid als Kind Sarias Lied vorspielen.","alter":"kind","nacht":false,"items":["Sarias Lied"]},{"id":"hz-hf-1","typ":"herzteil","gebiet":"Hyrule-Steppe","titel":"Tektiten-Grotte","tipp":"In der Tektiten-Grotte mit Zora-Schuppe oder Eisenstiefeln das Herzteil holen.","alter":"beide","nacht":false,"items":["Zora-Schuppe oder Eisenstiefel"]},{"id":"hz-hf-2","typ":"herzteil","gebiet":"Hyrule-Steppe","titel":"Deku-Grotte","tipp":"In der Grotte den Deku-Händler betäuben und das Herzteil holen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-mk-1","typ":"herzteil","gebiet":"Hyrule-Stadt","titel":"Krabbelminen-Bowling","tipp":"Beim Krabbelminen-Bowling den zweiten Preis gewinnen.","alter":"beide","nacht":false,"items":["Bomben"]},{"id":"hz-mk-2","typ":"herzteil","gebiet":"Hyrule-Stadt","titel":"Verlorener Hund","tipp":"Als Kind nachts den verlorenen Hund finden.","alter":"kind","nacht":true,"items":[]},{"id":"hz-mk-3","typ":"herzteil","gebiet":"Hyrule-Stadt","titel":"Schatztruhen-Spiel","tipp":"Das Schatztruhen-Spiel gewinnen und das Herzteil holen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-llr-1","typ":"herzteil","gebiet":"Lon-Lon-Farm","titel":"Herzteil im Turm","tipp":"Als Kind im Turm der Lon-Lon-Farm das Herzteil holen.","alter":"kind","nacht":false,"items":[]},{"id":"hz-kak-1","typ":"herzteil","gebiet":"Kakariko","titel":"Impas Haus","tipp":"Hinten in Impas Haus das Herzteil holen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-kak-2","typ":"herzteil","gebiet":"Kakariko","titel":"Windmühle","tipp":"In der Windmühle mit dem Bumerang das Herzteil holen.","alter":"beide","nacht":false,"items":["Bumerang"]},{"id":"hz-kak-3","typ":"herzteil","gebiet":"Kakariko","titel":"Mann auf dem Dach","tipp":"Dem Mann auf dem Dach das Herzteil abnehmen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-kak-4","typ":"herzteil","gebiet":"Kakariko","titel":"50 Goldene Skulltulas","tipp":"50 Goldene Skulltulas besiegt haben, dann die Belohnung abholen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-gy-1","typ":"herzteil","gebiet":"Friedhof","titel":"Truhe im Herzteil-Grab","tipp":"Im Herzteil-Grab die Hymne der Sonne spielen, dann die Truhe öffnen.","alter":"beide","nacht":false,"items":["Hymne der Sonne"]},{"id":"hz-gy-2","typ":"herzteil","gebiet":"Friedhof","titel":"Herzteil auf dem Friedhof","tipp":"Als Erwachsener die Kiste zerbrechen, dazu Zauberbohne oder Fanghaken nutzen.","alter":"erwachsen","nacht":false,"items":["Zauberbohne oder Fanghaken"]},{"id":"hz-gy-3","typ":"herzteil","gebiet":"Friedhof","titel":"Dampes Grabungstour","tipp":"Als Kind zu Dampes Zeit mit Dampe graben.","alter":"kind","nacht":false,"items":[]},{"id":"hz-gy-4","typ":"herzteil","gebiet":"Friedhof","titel":"Dampes Wettrennen","tipp":"Als Erwachsener in Dampes Grab das Herzteil des Rennens holen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"hz-dmt-1","typ":"herzteil","gebiet":"Todesberg","titel":"Herzteil am Todesberg","tipp":"Am Todesberg das freistehende Herzteil holen, Schaden in Kauf nehmen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-gc-1","typ":"herzteil","gebiet":"Goronia","titel":"Herzteil am Topf","tipp":"In Goronia am drehenden Topf das Herzteil holen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-dmc-1","typ":"herzteil","gebiet":"Todeskrater","titel":"Herzteil am Vulkan","tipp":"Als Erwachsener per Zauberbohne am Vulkan das Herzteil holen.","alter":"erwachsen","nacht":false,"items":["Zauberbohne"]},{"id":"hz-dmc-2","typ":"herzteil","gebiet":"Todeskrater","titel":"Herzteil an der Wand","tipp":"Im Todeskrater an der Wand das Herzteil holen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-zr-1","typ":"herzteil","gebiet":"Zoras Fluss","titel":"Frösche im Regen","tipp":"Als Kind den Fröschen die Hymne des Sturms vorspielen.","alter":"kind","nacht":false,"items":["Hymne des Sturms"]},{"id":"hz-zr-2","typ":"herzteil","gebiet":"Zoras Fluss","titel":"Frosch-Okarinaspiel","tipp":"Als Kind den Fröschen alle sechs Lieder vorspielen.","alter":"kind","nacht":false,"items":["Zeldas Wiegenlied","Eponas Lied","Sarias Lied","Hymne der Sonne","Hymne der Zeit","Hymne des Sturms"]},{"id":"hz-zr-3","typ":"herzteil","gebiet":"Zoras Fluss","titel":"Nahe der offenen Grotte","tipp":"Nahe der offenen Grotte am Fluss das Herzteil holen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-zr-4","typ":"herzteil","gebiet":"Zoras Fluss","titel":"Nahe Zoras Reich","tipp":"Nahe Zoras Reich am Fluss das Herzteil holen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-zd-1","typ":"herzteil","gebiet":"Zoras Reich","titel":"Truhe in Zoras Reich","tipp":"Als Kind die Truhe in Zoras Reich mit dem Deku-Stab öffnen.","alter":"kind","nacht":false,"items":["Deku-Stab"]},{"id":"hz-zf-1","typ":"herzteil","gebiet":"Zoras Quelle","titel":"Eisberg","tipp":"Als Erwachsener auf dem Eisberg das Herzteil holen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"hz-zf-2","typ":"herzteil","gebiet":"Zoras Quelle","titel":"Quellgrund","tipp":"Am Grund von Zoras Quelle das Herzteil holen.","alter":"erwachsen","nacht":false,"items":["Eisenstiefel"]},{"id":"hz-lh-1","typ":"herzteil","gebiet":"Hylia-See","titel":"Angeln als Kind","tipp":"Als Kind beim Angeln den Preis gewinnen.","alter":"kind","nacht":false,"items":[]},{"id":"hz-lh-2","typ":"herzteil","gebiet":"Hylia-See","titel":"Tauchen im Labor","tipp":"Im Labor mit der Zora-Schuppe tauchen und das Herzteil holen.","alter":"beide","nacht":false,"items":["Zora-Schuppe"]},{"id":"hz-lh-3","typ":"herzteil","gebiet":"Hylia-See","titel":"Herzteil am Hylia-See","tipp":"Als Erwachsener mit Zauberbohne oder Vogelscheuchen-Lied das Herzteil holen.","alter":"erwachsen","nacht":false,"items":["Zauberbohne oder Vogelscheuchen-Lied"]},{"id":"hz-gv-1","typ":"herzteil","gebiet":"Gerudotal","titel":"Kiste im Gerudotal","tipp":"Am Vorsprung die Kiste zerbrechen und das Herzteil holen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-gv-2","typ":"herzteil","gebiet":"Gerudotal","titel":"Wasserfall","tipp":"Am Wasserfall das Herzteil holen.","alter":"beide","nacht":false,"items":[]},{"id":"hz-gf-1","typ":"herzteil","gebiet":"Gerudo-Festung","titel":"Truhe auf dem Dach","tipp":"Auf dem Dach der Festung die Truhe öffnen.","alter":"erwachsen","nacht":false,"items":[]},{"id":"hz-gf-2","typ":"herzteil","gebiet":"Gerudo-Festung","titel":"Berittenes Bogenschiessen","tipp":"Tagsüber zu Pferd 1000 Punkte beim Bogenschiessen erreichen.","alter":"erwachsen","nacht":false,"items":["Gerudo-Pass","Eponas Lied","Feen-Bogen"],"tag":true},{"id":"hz-co-1","typ":"herzteil","gebiet":"Wüstenkoloss","titel":"Herzteil im Wüstenkoloss","tipp":"Als Erwachsener per Zauberbohne das Herzteil im Wüstenkoloss holen.","alter":"erwachsen","nacht":false,"items":["Zauberbohne"]},{"id":"hz-ic-1","typ":"herzteil","gebiet":"Eishöhle","titel":"Herzteil in der Eishöhle","tipp":"Hinter den Eiswänden das Herzteil holen.","alter":"erwachsen","nacht":false,"items":[]}];
+const BELOHNUNGEN = [
+  { n: 10, b: 'Erwachsenenbörse' }, { n: 20, b: 'Stein des Wissens' }, { n: 30, b: 'Riesenbörse' },
+  { n: 40, b: '10 Krabbelminen' }, { n: 50, b: 'Herzteil' }, { n: 100, b: '200 Rubine' }
+];
+const DUNGEONS = ['Deku-Baum', 'Dodongos Höhle', 'Jabu-Jabus Bauch', 'Grund des Brunnens', 'Waldtempel', 'Feuertempel', 'Wassertempel', 'Schattentempel', 'Geistertempel', 'Eishöhle'];
+const MAP = [
+  'OOWW.CCC.TXXQQ',
+  'OWWEECCCTTNNQQ',
+  'WWEEGSSSAAFZZ.',
+  '..EGGSSSAAFRZ.',
+  '...GSSLLSSSRR.',
+  '...GSSLLSSSSVH',
+  '..YGSSSSSSSVVH',
+  '..YYYSSSSSKKVV',
+  '.YYYYSSS..KKK.',
+  '.YYYY.....KKK.'
+];
+const GEBIETE = {
+  K: ['Kokiri-Wald', '#3F7A34'], V: ['Verlorene Wälder', '#2E5E2A'], H: ['Heilige Lichtung', '#5E8F4A'],
+  S: ['Hyrule-Steppe', '#6E9A44'], C: ['Hyrule-Stadt', '#8A8578'], L: ['Lon-Lon-Farm', '#A8A04E'],
+  A: ['Kakariko', '#7A6A92'], F: ['Friedhof', '#58506A'], T: ['Todesberg', '#7A5E3E'], N: ['Goronia', '#946A3C'],
+  X: ['Todeskrater', '#9A3E2C'], R: ['Zoras Fluss', '#3E7AA8'], Z: ['Zoras Reich', '#2F5E8C'], Q: ['Zoras Quelle', '#5C8EC0'],
+  Y: ['Hylia-See', '#2C6E8A'], G: ['Gerudotal', '#A0703A'], E: ['Gerudo-Festung', '#B98A4A'],
+  W: ['Gespensterwüste', '#C7A766'], O: ['Wüstenkoloss', '#D4B57A']
+};
+const CODE_BY_NAME = Object.fromEntries(Object.entries(GEBIETE).map(([k, v]) => [v[0], k]));
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = (n, w) => String(n).padStart(w, '0');
+
+// Spielstand: done = gefunden, haben = Inventar, notizen = Abweichungen im Remake
+let stand = { done: {}, haben: {}, notizen: {} };
+// Ansicht pro Gerät
+let ui = { tab: 'welt', gebiet: 'Kokiri-Wald', dungeon: 'Deku-Baum', typ: 'alle', f: {}, offeneNotiz: null, resetAsk: false };
+try { Object.assign(ui, JSON.parse(localStorage.getItem('oot-ui') || '{}'), { offeneNotiz: null, resetAsk: false }) } catch (e) {}
+try { const s = JSON.parse(localStorage.getItem('oot-stand') || 'null'); if (s) stand = Object.assign(stand, s) } catch (e) {}
+
+const ALLE_ITEMS = [...new Set(ORTE.flatMap((o) => o.items.flatMap((i) => i.split(' oder '))))].sort((a, b) => a.localeCompare(b, 'de'));
+
+function sichtbar(o) {
+  if (ui.typ !== 'alle' && o.typ !== ui.typ) return false;
+  const k = ui.f.kind, e = ui.f.erwachsen;
+  if (k && !e && o.alter === 'erwachsen') return false;
+  if (e && !k && o.alter === 'kind') return false;
+  if (ui.f.nacht && !o.nacht) return false;
+  if (ui.f.offen && stand.done[o.id]) return false;
+  if (ui.f.holbar && !o.items.every((i) => i.split(' oder ').some((x) => stand.haben[x] || (x === 'Enterhaken' && stand.haben['Fanghaken'])))) return false;
+  return true;
+}
+const offen = (o) => !stand.done[o.id];
+
+function renderKopf() {
+  const gs = ORTE.filter((o) => o.typ === 'skulltula' && stand.done[o.id]).length;
+  const hz = ORTE.filter((o) => o.typ === 'herzteil' && stand.done[o.id]).length;
+  $('cGs').textContent = pad(gs, 3);
+  $('cHz').textContent = pad(hz, 2);
+  const next = BELOHNUNGEN.find((b) => b.n > gs);
+  $('reward').innerHTML = next
+    ? 'NÄCHSTE BELOHNUNG IM SKULLTULA-HAUS: <b>' + esc(next.b) + '</b> bei ' + next.n + ' (noch ' + (next.n - gs) + ')'
+    : '<b>Alle Belohnungen im Skulltula-Haus erreicht.</b>';
+}
+
+function renderKarte() {
+  const zahl = {};
+  ORTE.forEach((o) => { if (sichtbar(o) && offen(o)) zahl[o.gebiet] = (zahl[o.gebiet] || 0) + 1 });
+  const gesamt = {};
+  ORTE.forEach((o) => { if (ui.typ === 'alle' || o.typ === ui.typ) gesamt[o.gebiet] = (gesamt[o.gebiet] || 0) + 1 });
+  // Anker = Zelle nahe dem Schwerpunkt des Gebiets
+  const zellen = {};
+  MAP.forEach((row, y) => row.split('').forEach((c, x) => { if (c !== '.') (zellen[c] = zellen[c] || []).push([x, y]) }));
+  const anker = {};
+  Object.entries(zellen).forEach(([c, list]) => {
+    const mx = list.reduce((s, p) => s + p[0], 0) / list.length, my = list.reduce((s, p) => s + p[1], 0) / list.length;
+    anker[c] = list.reduce((best, p) => (Math.hypot(p[0] - mx, p[1] - my) < Math.hypot(best[0] - mx, best[1] - my) ? p : best));
+  });
+  const selCode = CODE_BY_NAME[ui.gebiet];
+  let html = '';
+  MAP.forEach((row, y) => row.split('').forEach((c, x) => {
+    if (c === '.') { html += '<span class="cell"></span>'; return }
+    const [name, farbe] = GEBIETE[c];
+    const isAnker = anker[c][0] === x && anker[c][1] === y;
+    let cls = 'cell' + (c === selCode ? ' sel' : ''), txt = '';
+    if (isAnker && gesamt[name]) {
+      const n = zahl[name] || 0;
+      cls += n ? ' n' : ' n0';
+      txt = n ? String(n) : '✓';
+    }
+    html += '<span class="' + cls + '" data-c="' + c + '" style="background:' + farbe + '">' + txt + '</span>';
+  }));
+  $('map').innerHTML = html;
+  $('gebietSel').innerHTML = Object.values(GEBIETE).map(([n]) => n).sort((a, b) => a.localeCompare(b, 'de'))
+    .map((n) => '<option' + (n === ui.gebiet ? ' selected' : '') + '>' + esc(n) + ' (' + (zahl[n] || 0) + ' offen)</option>').join('');
+}
+
+function renderDungeons() {
+  $('dun').innerHTML = DUNGEONS.map((d) => {
+    const alle = ORTE.filter((o) => o.gebiet === d && (ui.typ === 'alle' || o.typ === ui.typ));
+    const fertig = alle.filter((o) => stand.done[o.id]).length;
+    const pct = alle.length ? Math.round(fertig / alle.length * 100) : 0;
+    return '<button class="btn" type="button" data-d="' + esc(d) + '" aria-pressed="' + (ui.dungeon === d) + '"><span>' + esc(d) + '</span><span>' + fertig + '/' + alle.length + '</span><span class="bar"><i style="width:' + pct + '%"></i></span></button>';
+  }).join('');
+}
+
+function renderListe() {
+  const ort = ui.tab === 'welt' ? ui.gebiet : ui.dungeon;
+  const alle = ORTE.filter((o) => o.gebiet === ort);
+  const liste = alle.filter(sichtbar);
+  $('listTitle').textContent = ort.toUpperCase();
+  $('listCount').textContent = alle.filter((o) => stand.done[o.id]).length + '/' + alle.length;
+  if (!liste.length) {
+    $('list').innerHTML = '<p class="empty">' + (alle.length ? 'Mit diesen Filtern ist hier nichts offen.' : 'In diesem Gebiet gibt es keine Skulltulas oder Herzteile.') + '</p>';
+    return;
+  }
+  $('list').innerHTML = liste.map((o) => {
+    const done = !!stand.done[o.id];
+    const notiz = stand.notizen[o.id];
+    const tags = [
+      '<span class="tag ' + (o.typ === 'skulltula' ? 'gs">Skulltula' : 'hz">Herzteil') + '</span>',
+      '<span class="tag">' + ({ kind: 'Kind', erwachsen: 'Erwachsen', beide: 'Kind + Erwachsen' }[o.alter]) + '</span>',
+      o.nacht ? '<span class="tag">Nur nachts</span>' : (o.tag ? '<span class="tag">Nur tagsüber</span>' : ''),
+      ...o.items.map((i) => '<span class="tag">' + esc(i) + '</span>'),
+      notiz ? '<span class="tag x">! weicht ab</span>' : '<span class="tag q">? unbestätigt fürs Remake</span>'
+    ].join('');
+    let note = '';
+    if (ui.offeneNotiz === o.id) {
+      note = '<div class="note"><label for="n-' + o.id + '" class="d">Was ist im Remake anders?</label><textarea id="n-' + o.id + '">' + esc(notiz || '') + '</textarea>' +
+        '<div class="confirm"><button class="btn" type="button" data-save="' + o.id + '">Speichern</button><button class="btn" type="button" data-cancel="1">Abbrechen</button>' +
+        (notiz ? '<button class="btn" type="button" data-clear="' + o.id + '">Notiz löschen</button>' : '') + '</div></div>';
+    } else {
+      note = '<div class="note">' + (notiz ? '<span class="d">Notiz: ' + esc(notiz) + '</span>' : '') +
+        '<button class="link" type="button" data-note="' + o.id + '">' + (notiz ? 'Notiz bearbeiten' : 'Stimmt im Remake nicht?') + '</button></div>';
+    }
+    return '<div class="entry' + (done ? ' done' : '') + '"><label><input type="checkbox" id="c-' + o.id + '" data-id="' + o.id + '"' + (done ? ' checked' : '') + '>' +
+      '<span><span class="t">' + esc(o.titel) + '</span><br><span class="d">' + esc(o.tipp) + '</span></span></label>' +
+      '<div class="tags">' + tags + '</div>' + note + '</div>';
+  }).join('');
+}
+
+function renderSteuerung() {
+  $('tabWelt').setAttribute('aria-pressed', ui.tab === 'welt');
+  $('tabDun').setAttribute('aria-pressed', ui.tab === 'dun');
+  $('weltBox').hidden = ui.tab !== 'welt';
+  $('dunBox').hidden = ui.tab !== 'dun';
+  document.querySelectorAll('[data-typ]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.typ === ui.typ));
+  document.querySelectorAll('[data-f]').forEach((b) => b.setAttribute('aria-pressed', !!ui.f[b.dataset.f]));
+  $('inv').innerHTML = ALLE_ITEMS.map((i) => '<button class="btn" type="button" data-inv="' + esc(i) + '" aria-pressed="' + !!stand.haben[i] + '">' + esc(i) + '</button>').join('');
+  $('resetBox').innerHTML = ui.resetAsk
+    ? '<span>Wirklich alles zurücksetzen?</span><button class="btn" type="button" id="resetYes">Ja, löschen</button><button class="btn" type="button" id="resetNo">Abbrechen</button>'
+    : '<button class="link" id="resetAsk" type="button">Fortschritt zurücksetzen</button>';
+}
+
+function render() {
+  renderKopf(); renderSteuerung();
+  if (ui.tab === 'welt') renderKarte(); else renderDungeons();
+  renderListe();
+  try { localStorage.setItem('oot-ui', JSON.stringify(ui)) } catch (e) {}
+}
+
+// Speichern: online (db), sonst nur auf diesem Gerät
+let dbDoc = null, saveTimer = null;
+function speichern() {
+  try { localStorage.setItem('oot-stand', JSON.stringify(stand)) } catch (e) {}
+  if (!dbDoc) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    dbDoc.set(stand).then(() => setSync(true, 'Gespeichert, auf allen Geräten gleich'))
+      .catch(() => setSync(false, 'Online-Speichern fehlgeschlagen, Stand liegt auf diesem Gerät'));
+  }, 400);
+}
+function setSync(on, text) { $('syncDot').classList.toggle('on', on); $('syncText').textContent = text }
+
+document.addEventListener('click', (ev) => {
+  const t = ev.target.closest('button, .cell');
+  if (!t) return;
+  if (t.id === 'tabWelt') ui.tab = 'welt';
+  else if (t.id === 'tabDun') ui.tab = 'dun';
+  else if (t.dataset.c && GEBIETE[t.dataset.c]) ui.gebiet = GEBIETE[t.dataset.c][0];
+  else if (t.dataset.d) ui.dungeon = t.dataset.d;
+  else if (t.dataset.typ) ui.typ = t.dataset.typ;
+  else if (t.dataset.f) ui.f[t.dataset.f] = !ui.f[t.dataset.f];
+  else if (t.dataset.inv) { stand.haben[t.dataset.inv] = !stand.haben[t.dataset.inv]; speichern() }
+  else if (t.dataset.note) ui.offeneNotiz = t.dataset.note;
+  else if (t.dataset.cancel) ui.offeneNotiz = null;
+  else if (t.dataset.save) {
+    const v = ($('n-' + t.dataset.save) || {}).value || '';
+    if (v.trim()) stand.notizen[t.dataset.save] = v.trim(); else delete stand.notizen[t.dataset.save];
+    ui.offeneNotiz = null; speichern();
+  } else if (t.dataset.clear) { delete stand.notizen[t.dataset.clear]; ui.offeneNotiz = null; speichern() }
+  else if (t.id === 'resetAsk') ui.resetAsk = true;
+  else if (t.id === 'resetNo') ui.resetAsk = false;
+  else if (t.id === 'resetYes') { stand = { done: {}, haben: {}, notizen: {} }; ui.resetAsk = false; speichern() }
+  else return;
+  render();
+});
+document.addEventListener('change', (ev) => {
+  const t = ev.target;
+  if (t.dataset && t.dataset.id) {
+    if (t.checked) stand.done[t.dataset.id] = true; else delete stand.done[t.dataset.id];
+    speichern(); render();
+  } else if (t.id === 'gebietSel') {
+    ui.gebiet = t.value.replace(/ \(\d+ offen\)$/, ''); render();
+  }
+});
+
+render();
+setSync(false, 'Nur auf diesem Gerät gespeichert');
+(async () => {
+  const db = window.claude && window.claude.use ? await window.claude.use('db') : null;
+  if (!db) return;
+  dbDoc = db.doc('spielstand/haupt');
+  dbDoc.onSnapshot((snap) => {
+    if (snap.exists) {
+      const d = snap.data();
+      stand = { done: { ...(d.done || {}) }, haben: { ...(d.haben || {}) }, notizen: { ...(d.notizen || {}) } };
+      try { localStorage.setItem('oot-stand', JSON.stringify(stand)) } catch (e) {}
+      if (!ui.offeneNotiz) render(); else renderKopf();
+    } else if (Object.keys(stand.done).length || Object.keys(stand.haben).length || Object.keys(stand.notizen).length) {
+      speichern();
+    }
+    setSync(true, 'Gespeichert, auf allen Geräten gleich');
+  }, () => setSync(false, 'Online-Speichern nicht verfügbar, Stand liegt auf diesem Gerät'));
+})();
+</script>
